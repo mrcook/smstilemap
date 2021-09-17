@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	img "github.com/mrcook/smstilemap/image"
+	"github.com/mrcook/smstilemap/background"
 )
 
 func main() {
@@ -20,26 +20,13 @@ func main() {
 	}
 
 	// process it
-	dstImage, err := processImage(srcImage)
-	if err != nil {
-		log.Fatal(err)
-	}
+	bg := background.FromImage(srcImage)
+	dstImage := bg.ToNRGBA()
 
 	// save to new png
 	if err := saveImage(dstImage, dstFilename); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func processImage(tiled image.Image) (image.Image, error) {
-	t, err := img.FromImage(tiled)
-	if err != nil {
-		panic(err)
-	}
-	t.FindAllUniqueTiles()
-	dstImage := t.UniqueTilesToImage() // convert back to a RGBA image
-
-	return dstImage, nil
 }
 
 func openImage(filename string) (image.Image, error) {
