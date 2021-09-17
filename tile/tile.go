@@ -17,7 +17,6 @@ package tile
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/disintegration/imaging"
 )
@@ -51,9 +50,23 @@ func (t Tile) Info() Info {
 	return t.info
 }
 
-// OriginalColorAt : TODO: only for testing? do we really want to keep this?
-func (t Tile) OriginalColorAt(x, y int) color.Color {
-	return t.imageData.At(x, y)
+// Duplicates returns a slice of the duplicates.
+func (t Tile) Duplicates() []Info {
+	return t.duplicates
+}
+
+// ImageInOrientation returns the image data in the desired orientation.
+func (t Tile) ImageInOrientation(orientation Orientation) image.Image {
+	switch orientation {
+	case OrientationFlippedH:
+		return imaging.FlipH(t.imageData)
+	case OrientationFlippedV:
+		return imaging.FlipV(t.imageData)
+	case OrientationFlippedVH:
+		return imaging.FlipH(imaging.FlipV(t.imageData))
+	default:
+		return t.imageData
+	}
 }
 
 // IsDuplicate tests the tile image for matching colours.

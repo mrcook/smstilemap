@@ -13,6 +13,6 @@ const (
 )
 
 type Info struct {
-	Col, Row    int
+	Col, Row    int // of the tile as used in the tilemap
 	Orientation Orientation
 }

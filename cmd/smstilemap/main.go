@@ -21,7 +21,8 @@ func main() {
 
 	// process it
 	bg := background.FromImage(srcImage)
-	dstImage := bg.ToNRGBA()
+	// dstImage := bg.ToNRGBA() // only unique tiles
+	dstImage := bg.ToTileMappedNRGBA()
 
 	// save to new png
 	if err := saveImage(dstImage, dstFilename); err != nil {

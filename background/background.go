@@ -45,18 +45,37 @@ func (b Background) ToNRGBA() *image.NRGBA {
 	xOffset := 0
 	yOffset := 0
 
-	for _, uniq := range b.tiles {
-		for y := 0; y < tile.Size; y++ {
-			for x := 0; x < tile.Size; x++ {
-				colour := uniq.OriginalColorAt(x, y)
-				img.Set(xOffset+x, yOffset+y, colour)
-			}
-		}
-
+	for i := 0; i < len(b.tiles); i++ {
+		b.drawTileAt(img, i, yOffset, xOffset, b.tiles[i].Info().Orientation)
 		xOffset += tile.Size
 		if xOffset >= cols {
 			xOffset = 0
 			yOffset += tile.Size
+		}
+	}
+
+	return img
+}
+
+// ToTileMappedNRGBA converts the tiles to a new NRGBA image, with all tiles
+// mapped to their correct position.
+func (b Background) ToTileMappedNRGBA() *image.NRGBA {
+	img := image.NewNRGBA(image.Rectangle{
+		Min: image.Point{X: 0, Y: 0},
+		Max: image.Point{X: b.imageInfo.width, Y: b.imageInfo.height},
+	})
+
+	for i := 0; i < len(b.tiles); i++ {
+		t := &b.tiles[i]
+
+		row := t.Info().Row * tile.Size
+		col := t.Info().Col * tile.Size
+		b.drawTileAt(img, i, row, col, t.Info().Orientation)
+
+		for _, info := range t.Duplicates() {
+			row = info.Row * tile.Size
+			col = info.Col * tile.Size
+			b.drawTileAt(img, i, row, col, info.Orientation)
 		}
 	}
 
@@ -75,13 +94,24 @@ func (b *Background) addTile(row, col int, img image.Image) {
 	info := tile.Info{Row: row, Col: col, Orientation: tile.OrientationNormal}
 
 	// iterate over existing tiles and add as duplicate if a match is found
-	for _, t := range b.tiles {
-		if orientation, dupe := t.IsDuplicate(img); dupe {
+	for i := 0; i < len(b.tiles); i++ {
+		if orientation, dupe := b.tiles[i].IsDuplicate(img); dupe {
 			info.Orientation = orientation
-			t.AddDuplicate(info)
+			b.tiles[i].AddDuplicate(info)
 			return
 		}
 	}
 
 	b.tiles = append(b.tiles, tile.NewTile(info, img))
+}
+
+func (b Background) drawTileAt(img *image.NRGBA, tileIndex, pxOffsetY, pxOffsetX int, orientation tile.Orientation) {
+	tt := b.tiles[tileIndex].ImageInOrientation(orientation)
+
+	for y := 0; y < tile.Size; y++ {
+		for x := 0; x < tile.Size; x++ {
+			colour := tt.At(x, y)
+			img.Set(pxOffsetX+x, pxOffsetY+y, colour)
+		}
+	}
 }
