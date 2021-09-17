@@ -2,46 +2,65 @@ package image
 
 import (
 	"image"
-
-	"github.com/mrcook/smstilemap/tile"
 )
 
+type orientation int
+
+const (
+	normal   orientation = 1
+	flippedV orientation = 2
+	flippedH orientation = 3
+)
+
+type info struct {
+	X, Y        int
+	orientation orientation
+}
+
+// UniqueTile stores the location of the unique tile along with the locations
+// of all duplicate tiles found in the tiled map table.
+type uniqueTile struct {
+	info       info
+	Duplicates []info
+}
+
 // FindAllUniqueTiles processes the tile list, recording only unique tiles.
-func (t *TiledMap) FindAllUniqueTiles() {
-	for y, rowTiles := range t.table {
+func (t *TiledImage) FindAllUniqueTiles() {
+	for y, rowTiles := range t.tiles {
 		for x, testTile := range rowTiles {
 			t.updateUniques(testTile, x, y)
 		}
 	}
 }
 
-func (t *TiledMap) updateUniques(testTile *tile.Tile, x, y int) {
-	loc := location{X: x, Y: y}
+func (t *TiledImage) updateUniques(testTile *Tile, x, y int) {
+	inf := info{X: x, Y: y, orientation: normal}
 
 	for i, u := range t.uniques {
-		baseTile := t.table[u.Location.Y][u.Location.X]
-		if t.tileMatches(baseTile, testTile) {
-			t.uniques[i].Duplicates = append(t.uniques[i].Duplicates, loc)
+		baseTile := t.tiles[u.info.Y][u.info.X]
+		if o, matched := t.tileMatches(baseTile, testTile); matched {
+			inf.orientation = o
+			t.uniques[i].Duplicates = append(t.uniques[i].Duplicates, inf)
 			return
 		}
 	}
-	t.uniques = append(t.uniques, uniqueTile{Location: loc})
+	t.uniques = append(t.uniques, uniqueTile{info: inf})
 }
 
 // TODO: run these in goroutines
-func (t *TiledMap) tileMatches(baseTile, testTile *tile.Tile) (matched bool) {
+func (t *TiledImage) tileMatches(baseTile, testTile *Tile) (orientation, bool) {
 	if t.tilePixelsMatch(baseTile, testTile) {
-		matched = true
+		return normal, true
 	} else if t.tilePixelsMatch(baseTile, testTile.FlipV()) {
-		matched = true
+		return flippedV, true
 	} else if t.tilePixelsMatch(baseTile, testTile.FlipH()) {
-		matched = true
+		return flippedH, true
 	}
-	return
+	return normal, false
 }
 
 // tests if the pixels (colours) in two tiles are an exact match
-func (t *TiledMap) tilePixelsMatch(baseTile, testTile *tile.Tile) bool {
+func (t *TiledImage) tilePixelsMatch(baseTile, testTile *Tile) bool {
 	if len(baseTile.NRGBA.Pix) != len(testTile.NRGBA.Pix) {
 		return false
 	}
@@ -54,13 +73,13 @@ func (t *TiledMap) tilePixelsMatch(baseTile, testTile *tile.Tile) bool {
 }
 
 // UniqueTilesToImage converts the unique tiles to an RGBA image.
-func (t *TiledMap) UniqueTilesToImage() *image.NRGBA {
+func (t *TiledImage) UniqueTilesToImage() *image.NRGBA {
 	rows := len(t.uniques) / t.cols
 	if len(t.uniques)%t.cols > 0 {
 		rows += 1 // make up missing row
 	}
-	rows *= tile.Size
-	cols := t.cols * tile.Size
+	rows *= Size
+	cols := t.cols * Size
 
 	img := image.NewNRGBA(image.Rectangle{
 		Min: image.Point{X: 0, Y: 0},
@@ -71,26 +90,26 @@ func (t *TiledMap) UniqueTilesToImage() *image.NRGBA {
 	yOffset := 0
 
 	for _, uniq := range t.uniques {
-		curTile := t.table[uniq.Location.Y][uniq.Location.X]
+		curTile := t.tiles[uniq.info.Y][uniq.info.X]
 
-		for y := 0; y < tile.Size; y++ {
-			for x := 0; x < tile.Size; x++ {
+		for y := 0; y < Size; y++ {
+			for x := 0; x < Size; x++ {
 				colour := curTile.NRGBA.At(x, y)
 				img.Set(xOffset+x, yOffset+y, colour)
 			}
 		}
 
-		xOffset += tile.Size
+		xOffset += Size
 		if xOffset >= cols {
 			xOffset = 0
-			yOffset += tile.Size
+			yOffset += Size
 		}
 	}
 
 	return img
 }
 
-func (t *TiledMap) locationToCoords(loc int) (x, y int) {
+func (t *TiledImage) locationToCoords(loc int) (x, y int) {
 	x = loc % t.cols
 	y = loc / t.cols
 	return

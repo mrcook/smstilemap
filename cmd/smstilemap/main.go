@@ -1,41 +1,81 @@
 package main
 
 import (
+	"flag"
+	"image"
 	"image/png"
+	"log"
 	"os"
 
-	"github.com/mrcook/smstilemap/image"
+	img "github.com/mrcook/smstilemap/image"
 )
 
 func main() {
-	f, err := os.Open("/home/michael/code-go/jetpac-sms-8bit.png")
+	srcFilename := parseCliForFilename()
+	dstFilename := srcFilename + "-new.png" // simple but works
+
+	srcImage, err := openImage(srcFilename)
 	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	img, err := png.Decode(f)
-	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	t, err := image.FromImage(img)
+	// process it
+	dstImage, err := processImage(srcImage)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	t.FindAllUniqueTiles()
-
-	// newImg := t.ToImage() // convert back to a RGBA image
-	newImg := t.UniqueTilesToImage() // convert back to a RGBA image
 
 	// save to new png
-	nf, err := os.Create("/home/michael/code-go/test.png")
+	if err := saveImage(dstImage, dstFilename); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func processImage(tiled image.Image) (image.Image, error) {
+	t, err := img.FromImage(tiled)
 	if err != nil {
 		panic(err)
 	}
-	defer nf.Close()
-	err = png.Encode(nf, newImg)
+	t.FindAllUniqueTiles()
+	dstImage := t.UniqueTilesToImage() // convert back to a RGBA image
+
+	return dstImage, nil
+}
+
+func openImage(filename string) (image.Image, error) {
+	f, err := os.Open(filename)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	defer f.Close()
+
+	decodedImage, err := png.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodedImage, nil
+}
+
+func saveImage(i image.Image, filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	err = png.Encode(f, i)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func parseCliForFilename() string {
+	filename := flag.String("src", "", "Source PNG image filename")
+	flag.Parse()
+	if len(*filename) == 0 {
+		log.Fatal("source filename is required")
+	}
+	return *filename
 }
