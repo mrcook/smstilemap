@@ -6,10 +6,12 @@ import (
 	"github.com/mrcook/smstilemap/tile"
 )
 
-// ImageInfo contains data about the original image
-type imageInfo struct {
-	width  int // in pixels
-	height int // in pixels
+// Info contains data about the original image
+type metadata struct {
+	Rows   int // in 8x8 tiles
+	Cols   int // in 8x8 tiles
+	Width  int // in pixels
+	Height int // in pixels
 }
 
 // imageTile holds an 8x8 pixel tile from the original image
