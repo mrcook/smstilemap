@@ -30,27 +30,37 @@ type Tile struct {
 	planarData [32]uint8
 
 	// original image (tile) data; location and colour data
-	info         Info
+	info         info
 	orientations map[Orientation]image.Image
 
 	// duplicate tiles located in the image (based on their RGBA colours);
 	// exact match, along with vertically and horizontally flipped
-	duplicates []Info
+	duplicates []info
 }
 
-func NewNormalOrientation(info Info, tileImage image.Image) *Tile {
+func New(row, col int, tileImage image.Image) *Tile {
 	t := Tile{
-		info:         info,
+		info:         info{row: row, col: col, orientation: OrientationNormal},
 		orientations: make(map[Orientation]image.Image, 4),
 	}
 	t.orientations[OrientationNormal] = tileImage
 	return &t
 }
 
-func NewWithOrientations(info Info, tileImage image.Image) *Tile {
-	t := NewNormalOrientation(info, tileImage)
+func NewWithOrientations(row, col int, tileImage image.Image) *Tile {
+	t := New(row, col, tileImage)
 	t.generateFlippedOrientations()
 	return t
+}
+
+// RowInPixels is the tile row in pixels, as located in the source image.
+func (t Tile) RowInPixels() int {
+	return t.info.row * Size
+}
+
+// ColInPixels is the tile column in pixels, as located in the source image.
+func (t Tile) ColInPixels() int {
+	return t.info.col * Size
 }
 
 func (t Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {
@@ -61,19 +71,23 @@ func (t Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, err
 	return o.At(x, y), nil
 }
 
-// AddDuplicate tile to the duplicates slice.
-func (t *Tile) AddDuplicate(info Info) {
-	t.duplicates = append(t.duplicates, info)
+// AddDuplicateInfo tile to the duplicates slice.
+func (t *Tile) AddDuplicateInfo(row, col int, orientation Orientation) {
+	inf := info{row: row, col: col, orientation: orientation}
+	t.duplicates = append(t.duplicates, inf)
 }
 
-// Info returns the location/orientation info for the current tile.
-func (t Tile) Info() Info {
-	return t.info
+// DuplicateCount returns number of duplicates for the tile.
+func (t Tile) DuplicateCount() int {
+	return len(t.duplicates)
 }
 
-// Duplicates returns a slice of the duplicates.
-func (t Tile) Duplicates() []Info {
-	return t.duplicates
+// GetDuplicateInfo returns the duplicate at the given index number.
+func (t Tile) GetDuplicateInfo(id int) (*info, error) {
+	if id >= len(t.duplicates) {
+		return nil, fmt.Errorf("tile duplicate index out of range: %d", id)
+	}
+	return &t.duplicates[id], nil
 }
 
 // IsDuplicate tests the tile image for matching colours.

@@ -59,18 +59,14 @@ func (b *Background) generateUniqueTileList(tiles []imageTile) {
 // or as a duplicate of an existing tile, when flipped in one of the supported
 // vertical/horizontal orientations.
 func (b *Background) addTile(row, col int, img image.Image) {
-	info := tile.Info{Row: row, Col: col, Orientation: tile.OrientationNormal}
-
 	// iterate over existing tiles and add as duplicate if a match is found
 	for i := 0; i < len(b.tiles); i++ {
-		inf := tile.Info{Col: col, Row: row, Orientation: tile.OrientationNormal}
-		t := tile.NewNormalOrientation(inf, img)
-		if orientation, dupe := b.tiles[i].IsDuplicate(t); dupe {
-			info.Orientation = orientation
-			b.tiles[i].AddDuplicate(info)
+		t := tile.New(row, col, img)
+		if or, dupe := b.tiles[i].IsDuplicate(t); dupe {
+			b.tiles[i].AddDuplicateInfo(row, col, or)
 			return
 		}
 	}
 
-	b.tiles = append(b.tiles, *tile.NewWithOrientations(info, img))
+	b.tiles = append(b.tiles, *tile.NewWithOrientations(row, col, img))
 }

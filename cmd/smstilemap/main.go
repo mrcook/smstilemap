@@ -55,7 +55,7 @@ func toImage(bg *background.Background) (image.Image, error) {
 
 	for i := 0; i < bg.TileCount(); i++ {
 		bgTile, _ := bg.GetTile(i)
-		if err := drawTileAt(bgTile, img, i, yOffset, xOffset, bgTile.Info().Orientation); err != nil {
+		if err := drawTileAt(bgTile, img, i, yOffset, xOffset, tile.OrientationNormal); err != nil {
 			return nil, err
 		}
 		xOffset += tile.Size
@@ -79,16 +79,17 @@ func toTileMappedImage(bg *background.Background) (image.Image, error) {
 	for i := 0; i < bg.TileCount(); i++ {
 		bgTile, _ := bg.GetTile(i)
 
-		row := bgTile.Info().Row * tile.Size
-		col := bgTile.Info().Col * tile.Size
-		if err := drawTileAt(bgTile, img, i, row, col, bgTile.Info().Orientation); err != nil {
+		y := bgTile.RowInPixels()
+		x := bgTile.ColInPixels()
+		if err := drawTileAt(bgTile, img, i, y, x, tile.OrientationNormal); err != nil {
 			return nil, err
 		}
 
-		for _, info := range bgTile.Duplicates() {
-			row = info.Row * tile.Size
-			col = info.Col * tile.Size
-			if err := drawTileAt(bgTile, img, i, row, col, info.Orientation); err != nil {
+		for did := 0; did < bgTile.DuplicateCount(); did++ {
+			info, _ := bgTile.GetDuplicateInfo(did)
+			y = info.Row() * tile.Size
+			x = info.Col() * tile.Size
+			if err := drawTileAt(bgTile, img, i, y, x, info.Orientation()); err != nil {
 				return nil, err
 			}
 		}
