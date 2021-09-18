@@ -37,5 +37,9 @@ package tilemap
 // graphics seem more multi-layered.
 // https://www.smspower.org/maxim/HowToProgram/Tilemap
 type Tilemap struct {
-	table [28][32]uint16
+	table [28][32]Word
+}
+
+func (t *Tilemap) Set(row, col int, word Word) {
+	t.table[row][col] = word
 }
