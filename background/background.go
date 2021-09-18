@@ -1,6 +1,7 @@
 package background
 
 import (
+	"fmt"
 	"image"
 
 	"github.com/mrcook/smstilemap/tile"
@@ -28,8 +29,9 @@ func FromImage(img image.Image) *Background {
 	return &bg
 }
 
-// ToNRGBA converts the tiles to an NRGBA image.
-func (b Background) ToNRGBA() *image.NRGBA {
+// ToImage converts the tiles to an NRGBA image.
+// TODO: should not be part of the package
+func (b Background) ToImage() (image.Image, error) {
 	rows := len(b.tiles) / b.cols
 	if len(b.tiles)%b.cols > 0 {
 		rows += 1 // make up missing row
@@ -46,7 +48,9 @@ func (b Background) ToNRGBA() *image.NRGBA {
 	yOffset := 0
 
 	for i := 0; i < len(b.tiles); i++ {
-		b.drawTileAt(img, i, yOffset, xOffset, b.tiles[i].Info().Orientation)
+		if err := b.drawTileAt(img, i, yOffset, xOffset, b.tiles[i].Info().Orientation); err != nil {
+			return nil, err
+		}
 		xOffset += tile.Size
 		if xOffset >= cols {
 			xOffset = 0
@@ -54,12 +58,13 @@ func (b Background) ToNRGBA() *image.NRGBA {
 		}
 	}
 
-	return img
+	return img, nil
 }
 
-// ToTileMappedNRGBA converts the tiles to a new NRGBA image, with all tiles
+// ToTileMappedImage converts the tiles to a new NRGBA image, with all tiles
 // mapped to their correct position.
-func (b Background) ToTileMappedNRGBA() *image.NRGBA {
+// TODO: should not be part of the package
+func (b Background) ToTileMappedImage() (image.Image, error) {
 	img := image.NewNRGBA(image.Rectangle{
 		Min: image.Point{X: 0, Y: 0},
 		Max: image.Point{X: b.imageInfo.width, Y: b.imageInfo.height},
@@ -70,16 +75,20 @@ func (b Background) ToTileMappedNRGBA() *image.NRGBA {
 
 		row := t.Info().Row * tile.Size
 		col := t.Info().Col * tile.Size
-		b.drawTileAt(img, i, row, col, t.Info().Orientation)
+		if err := b.drawTileAt(img, i, row, col, t.Info().Orientation); err != nil {
+			return nil, err
+		}
 
 		for _, info := range t.Duplicates() {
 			row = info.Row * tile.Size
 			col = info.Col * tile.Size
-			b.drawTileAt(img, i, row, col, info.Orientation)
+			if err := b.drawTileAt(img, i, row, col, info.Orientation); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return img
+	return img, nil
 }
 
 // processes the tile list, recording all unique tiles, and adding duplicate
@@ -95,23 +104,28 @@ func (b *Background) addTile(row, col int, img image.Image) {
 
 	// iterate over existing tiles and add as duplicate if a match is found
 	for i := 0; i < len(b.tiles); i++ {
-		if orientation, dupe := b.tiles[i].IsDuplicate(img); dupe {
+		inf := tile.Info{Col: col, Row: row, Orientation: tile.OrientationNormal}
+		t := tile.NewNormalOrientation(inf, img)
+		if orientation, dupe := b.tiles[i].IsDuplicate(t); dupe {
 			info.Orientation = orientation
 			b.tiles[i].AddDuplicate(info)
 			return
 		}
 	}
 
-	b.tiles = append(b.tiles, tile.NewTile(info, img))
+	b.tiles = append(b.tiles, *tile.NewWithOrientations(info, img))
 }
 
-func (b Background) drawTileAt(img *image.NRGBA, tileIndex, pxOffsetY, pxOffsetX int, orientation tile.Orientation) {
-	tt := b.tiles[tileIndex].ImageInOrientation(orientation)
-
+func (b Background) drawTileAt(img *image.NRGBA, tileIndex, pxOffsetY, pxOffsetX int, orientation tile.Orientation) error {
+	t := b.tiles[tileIndex]
 	for y := 0; y < tile.Size; y++ {
 		for x := 0; x < tile.Size; x++ {
-			colour := tt.At(x, y)
+			colour, err := t.OrientationAt(y, x, orientation)
+			if err != nil {
+				return fmt.Errorf("draw tile error: %w", err)
+			}
 			img.Set(pxOffsetX+x, pxOffsetY+y, colour)
 		}
 	}
+	return nil
 }
