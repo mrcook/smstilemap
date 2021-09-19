@@ -1,6 +1,6 @@
-// Package palette represents the Sega Master System palette.
-//
-// The palette defines which colours we can use. There are actually two palettes;
+package sms
+
+// Palette defines which colours we can use. There are actually two palettes;
 // one for the background, and one for the sprites. (The sprite palette can be
 // used by the background too.) Each palette contains 16 entries.
 //
@@ -18,11 +18,7 @@
 //
 // So, for example, if there was a little blue, no green and a lot of red, the
 // colour would be %00010011.
-package palette
-
-import "github.com/mrcook/smstilemap/colour"
-
 type Palette struct {
-	Background [16]colour.Colour
-	Sprites    [16]colour.Colour
+	Background [16]Colour
+	Sprites    [16]Colour
 }

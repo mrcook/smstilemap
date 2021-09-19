@@ -1,5 +1,13 @@
-// Package tile represents an unique SMS tile (8x8 pixels)
-//
+package image
+
+import (
+	"fmt"
+	"image"
+	"image/color"
+
+	"github.com/disintegration/imaging"
+)
+
 // All graphics on the Master System are built up from 8×8 pixel tiles.
 // Each pixel is a palette index from 0 to 15, i.e. 4 bits.
 //
@@ -13,24 +21,11 @@
 // In the most typical VRAM layout, 14KB of the total 16KB is available for
 // tiles; that is enough space for 448 tiles. (With some tricks you can get
 // space for a few more.)
-package tile
-
-import (
-	"fmt"
-	"image"
-	"image/color"
-
-	"github.com/disintegration/imaging"
-
-	"github.com/mrcook/smstilemap/colour"
-)
 
 const Size = 8 // tile size in pixels
 
+// Tile is an 8x8 pixel tile from the original image.
 type Tile struct {
-	// SMS tile data in planar format
-	planarData [32]uint8
-
 	// original image (tile) data; location and colour data
 	info         info
 	orientations map[Orientation]image.Image
@@ -63,18 +58,6 @@ func (t Tile) RowInPixels() int {
 // ColInPixels is the tile column in pixels, as located in the source image.
 func (t Tile) ColInPixels() int {
 	return t.info.col * Size
-}
-
-func (t Tile) ColourAt(x, y int) (colour.Colour, error) {
-	var clr colour.Colour
-
-	c, ok := t.orientations[OrientationNormal]
-	if !ok {
-		return clr, fmt.Errorf("tile has no normal orientation")
-	}
-	r, g, b, _ := c.At(x, y).RGBA()
-
-	return colour.FromRGB(uint8(r), uint8(g), uint8(b)), nil
 }
 
 func (t Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {

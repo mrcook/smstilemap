@@ -1,5 +1,4 @@
-// Package tilemap represents a Sega Master System tilemap (named table).
-package tilemap
+package sms
 
 // Tilemap represents the background graphics on the Master System screen,
 // which is 256x224 pixels (32x28 8x8 tiles). This "virtual screen" is slightly

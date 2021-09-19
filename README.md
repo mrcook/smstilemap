@@ -31,7 +31,7 @@ Master System specs:
 * maximum of 448 unique tiles
 
 When creating the source image, the above dimensions, colours, and palette size
-should be used. See [colour/colour.go] for a list of the RGB colours the SMS
+should be used. See [sms/colour.go] for a list of the RGB colours the SMS
 supports.
 
 The Master System screen viewport would require 768 unique tiles to fill it.

@@ -8,9 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/mrcook/smstilemap/tile"
-
-	"github.com/mrcook/smstilemap/background"
+	background "github.com/mrcook/smstilemap/image"
 )
 
 func main() {
@@ -42,7 +40,7 @@ func toImage(bg *background.Background) (image.Image, error) {
 	if bg.TileCount()%bg.Info().Cols > 0 {
 		rows += 1 // make up missing row
 	}
-	rows *= tile.Size
+	rows *= background.Size
 	cols := bg.Info().Width
 
 	img := image.NewNRGBA(image.Rectangle{
@@ -55,13 +53,13 @@ func toImage(bg *background.Background) (image.Image, error) {
 
 	for i := 0; i < bg.TileCount(); i++ {
 		bgTile, _ := bg.GetTile(i)
-		if err := drawTileAt(bgTile, img, i, yOffset, xOffset, tile.OrientationNormal); err != nil {
+		if err := drawTileAt(bgTile, img, i, yOffset, xOffset, background.OrientationNormal); err != nil {
 			return nil, err
 		}
-		xOffset += tile.Size
+		xOffset += background.Size
 		if xOffset >= cols {
 			xOffset = 0
-			yOffset += tile.Size
+			yOffset += background.Size
 		}
 	}
 
@@ -81,14 +79,14 @@ func toTileMappedImage(bg *background.Background) (image.Image, error) {
 
 		y := bgTile.RowInPixels()
 		x := bgTile.ColInPixels()
-		if err := drawTileAt(bgTile, img, i, y, x, tile.OrientationNormal); err != nil {
+		if err := drawTileAt(bgTile, img, i, y, x, background.OrientationNormal); err != nil {
 			return nil, err
 		}
 
 		for did := 0; did < bgTile.DuplicateCount(); did++ {
 			info, _ := bgTile.GetDuplicateInfo(did)
-			y = info.Row() * tile.Size
-			x = info.Col() * tile.Size
+			y = info.Row() * background.Size
+			x = info.Col() * background.Size
 			if err := drawTileAt(bgTile, img, i, y, x, info.Orientation()); err != nil {
 				return nil, err
 			}
@@ -98,9 +96,9 @@ func toTileMappedImage(bg *background.Background) (image.Image, error) {
 	return img, nil
 }
 
-func drawTileAt(t *tile.Tile, img *image.NRGBA, tileIndex, pxOffsetY, pxOffsetX int, orientation tile.Orientation) error {
-	for y := 0; y < tile.Size; y++ {
-		for x := 0; x < tile.Size; x++ {
+func drawTileAt(t *background.Tile, img *image.NRGBA, tileIndex, pxOffsetY, pxOffsetX int, orientation background.Orientation) error {
+	for y := 0; y < background.Size; y++ {
+		for x := 0; x < background.Size; x++ {
 			colour, err := t.OrientationAt(y, x, orientation)
 			if err != nil {
 				return fmt.Errorf("draw tile error: %w", err)

@@ -1,4 +1,4 @@
-package tilemap
+package sms
 
 type Word struct {
 	Priority       bool   // bit 12: tile is displayed in front of sprites when set

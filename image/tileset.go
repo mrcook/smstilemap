@@ -1,24 +1,22 @@
-package background
+package image
 
 import (
 	"fmt"
 	"image"
-
-	"github.com/mrcook/smstilemap/tile"
 )
 
-// Background is an SMS tile set consisting of unique 8x8 tiles.
+// Background represents a tiled version of an image, consisting of unique 8x8 tiles.
 type Background struct {
 	metadata metadata
-	tiles    []tile.Tile
+	tiles    []Tile
 }
 
 // FromImage returns a new Background tile set from the given image data.
 func FromImage(img image.Image) *Background {
 	bg := Background{
 		metadata: metadata{
-			Rows:   img.Bounds().Dy() / tile.Size,
-			Cols:   img.Bounds().Dx() / tile.Size,
+			Rows:   img.Bounds().Dy() / Size,
+			Cols:   img.Bounds().Dx() / Size,
 			Width:  img.Bounds().Dx(),
 			Height: img.Bounds().Dy(),
 		},
@@ -30,7 +28,7 @@ func FromImage(img image.Image) *Background {
 }
 
 // GetTile returns the tile for the given index number.
-func (b Background) GetTile(id int) (*tile.Tile, error) {
+func (b Background) GetTile(id int) (*Tile, error) {
 	if id >= b.TileCount() {
 		return nil, fmt.Errorf("background tile index out of range: %d", id)
 	}
@@ -61,12 +59,12 @@ func (b *Background) generateUniqueTileList(tiles []imageTile) {
 func (b *Background) addTile(row, col int, img image.Image) {
 	// iterate over existing tiles and add as duplicate if a match is found
 	for i := 0; i < len(b.tiles); i++ {
-		t := tile.New(row, col, img)
+		t := New(row, col, img)
 		if or, dupe := b.tiles[i].IsDuplicate(t); dupe {
 			b.tiles[i].AddDuplicateInfo(row, col, or)
 			return
 		}
 	}
 
-	b.tiles = append(b.tiles, *tile.NewWithOrientations(row, col, img))
+	b.tiles = append(b.tiles, *NewWithOrientations(row, col, img))
 }

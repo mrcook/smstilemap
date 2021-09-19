@@ -1,9 +1,7 @@
-package background
+package image
 
 import (
 	"image"
-
-	"github.com/mrcook/smstilemap/tile"
 )
 
 // Info contains data about the original image
@@ -23,20 +21,20 @@ type imageTile struct {
 // imageToTiles converts a pixel based image to a slice of tiles, with
 // each tile containing its original location and colour data.
 func imageToTiles(img image.Image) (tiles []imageTile) {
-	tileBounds := image.Rectangle{Min: image.Point{}, Max: image.Point{X: tile.Size, Y: tile.Size}}
+	tileBounds := image.Rectangle{Min: image.Point{}, Max: image.Point{X: Size, Y: Size}}
 
 	// the offsets enable moving the 'cursor' to the next tile location
-	for rowOffset := 0; rowOffset < img.Bounds().Dy(); rowOffset += tile.Size {
-		for colOffset := 0; colOffset < img.Bounds().Dx(); colOffset += tile.Size {
+	for rowOffset := 0; rowOffset < img.Bounds().Dy(); rowOffset += Size {
+		for colOffset := 0; colOffset < img.Bounds().Dx(); colOffset += Size {
 			newTile := imageTile{
-				row:   rowOffset / tile.Size,
-				col:   colOffset / tile.Size,
+				row:   rowOffset / Size,
+				col:   colOffset / Size,
 				image: image.NewNRGBA(tileBounds),
 			}
 
 			// fetch the 8x8 tile colour data
-			for y := 0; y < tile.Size; y++ {
-				for x := 0; x < tile.Size; x++ {
+			for y := 0; y < Size; y++ {
+				for x := 0; x < Size; x++ {
 					colour := img.At(colOffset+x, rowOffset+y)
 					newTile.image.Set(x, y, colour)
 				}

@@ -1,14 +1,14 @@
-package tilemap_test
+package sms_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/mrcook/smstilemap/tilemap"
+	"github.com/mrcook/smstilemap/sms"
 )
 
 func TestWord_ToUint(t *testing.T) {
-	table := map[uint16]tilemap.Word{
+	table := map[uint16]sms.Word{
 		0b0000000000000001: {false, false, false, false, 1},
 		0b0000000111111111: {false, false, false, false, 511},
 		0b0001000000000001: {true, false, false, false, 1},
@@ -28,7 +28,7 @@ func TestWord_ToUint(t *testing.T) {
 	}
 
 	t.Run("when tile number exceeds 511", func(t *testing.T) {
-		word := tilemap.Word{TileNumber: 512}
+		word := sms.Word{TileNumber: 512}
 		result := word.ToUint()
 
 		if result != 0 {

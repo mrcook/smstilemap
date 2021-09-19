@@ -1,13 +1,12 @@
-// Package colour implements a basic color library for the Sega Master System.
+package sms
+
+// Colour represents a single RGB colour on the SMS.
 //
 // An SMS colour consists of a single byte, giving a total 64 possible colours.
 // Each colour uses two bits from the byte, representing a value between 0 and 3:
 //
 //   Bit:   7 6  |  5 4 |  3 2  | 1 0
 //     %: Unused | Blue | Green | Red
-package colour
-
-// Colour represents a single RGB colour from the SMS.
 type Colour uint8
 
 // FromRGB converts 8-bit RGB values to one of the 64 SMS colours.

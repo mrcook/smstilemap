@@ -1,10 +1,10 @@
-package colour_test
+package sms_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/mrcook/smstilemap/colour"
+	"github.com/mrcook/smstilemap/sms"
 )
 
 func TestColour_RGB(t *testing.T) {
@@ -23,7 +23,7 @@ func TestColour_RGB(t *testing.T) {
 	}
 
 	for label, data := range table {
-		col := colour.Colour(data.colour)
+		col := sms.Colour(data.colour)
 
 		t.Run(fmt.Sprintf("%s should return correct RGB values", label), func(t *testing.T) {
 			r, b, g := col.RGB()
@@ -44,7 +44,7 @@ func TestColour_RGB(t *testing.T) {
 func TestColour_FromRGB(t *testing.T) {
 	t.Run("with valid SMS colour values", func(t *testing.T) {
 		table := map[string]struct {
-			colour  colour.Colour
+			colour  sms.Colour
 			r, g, b uint8
 		}{
 			"black":     {0b00000000, 0, 0, 0},
@@ -57,7 +57,7 @@ func TestColour_FromRGB(t *testing.T) {
 		}
 
 		for label, data := range table {
-			col := colour.FromRGB(data.r, data.g, data.b)
+			col := sms.FromRGB(data.r, data.g, data.b)
 
 			t.Run(fmt.Sprintf("%s should return correct Colour value", label), func(t *testing.T) {
 				if col != data.colour {
@@ -69,7 +69,7 @@ func TestColour_FromRGB(t *testing.T) {
 
 	t.Run("when RGB values do not match any SMS colours", func(t *testing.T) {
 		table := map[string]struct {
-			colour  colour.Colour
+			colour  sms.Colour
 			r, g, b uint8
 		}{
 			"black":     {0b00000000, 0, 0, 52},
@@ -82,7 +82,7 @@ func TestColour_FromRGB(t *testing.T) {
 		}
 
 		for label, data := range table {
-			col := colour.FromRGB(data.r, data.g, data.b)
+			col := sms.FromRGB(data.r, data.g, data.b)
 
 			t.Run(fmt.Sprintf("it should match to the nearest colour: %s", label), func(t *testing.T) {
 				if col != data.colour {
