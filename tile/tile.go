@@ -21,6 +21,8 @@ import (
 	"image/color"
 
 	"github.com/disintegration/imaging"
+
+	"github.com/mrcook/smstilemap/colour"
 )
 
 const Size = 8 // tile size in pixels
@@ -61,6 +63,18 @@ func (t Tile) RowInPixels() int {
 // ColInPixels is the tile column in pixels, as located in the source image.
 func (t Tile) ColInPixels() int {
 	return t.info.col * Size
+}
+
+func (t Tile) ColourAt(x, y int) (colour.Colour, error) {
+	var clr colour.Colour
+
+	c, ok := t.orientations[OrientationNormal]
+	if !ok {
+		return clr, fmt.Errorf("tile has no normal orientation")
+	}
+	r, g, b, _ := c.At(x, y).RGBA()
+
+	return colour.FromRGB(uint8(r), uint8(g), uint8(b)), nil
 }
 
 func (t Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {
