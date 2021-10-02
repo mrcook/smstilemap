@@ -23,7 +23,7 @@ func main() {
 	// process it
 	bg := background.FromImage(srcImage)
 	// dstImage, err := toImage(bg) // only unique tiles
-	dstImage, err := toTileMappedImage(bg)
+	dstImage, err := tileMappedToImage(bg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func toImage(bg *background.Background) (image.Image, error) {
 
 // Converts the tiles to a new NRGBA image, with all tiles mapped back to
 // their original positions.
-func toTileMappedImage(bg *background.Background) (image.Image, error) {
+func tileMappedToImage(bg *background.Background) (image.Image, error) {
 	img := image.NewNRGBA(image.Rectangle{
 		Min: image.Point{X: 0, Y: 0},
 		Max: image.Point{X: bg.Info().Width, Y: bg.Info().Height},

@@ -7,8 +7,8 @@ import (
 
 // Background represents a tiled version of an image, consisting of unique 8x8 tiles.
 type Background struct {
-	metadata metadata
-	tiles    []Tile
+	metadata metadata // original image details
+	tiles    []Tile   // a set of unique tiles
 }
 
 // FromImage returns a new Background tile set from the given image data.
@@ -60,8 +60,8 @@ func (b *Background) addTile(row, col int, img image.Image) {
 	// iterate over existing tiles and add as duplicate if a match is found
 	for i := 0; i < len(b.tiles); i++ {
 		t := New(row, col, img)
-		if or, dupe := b.tiles[i].IsDuplicate(t); dupe {
-			b.tiles[i].AddDuplicateInfo(row, col, or)
+		if orientation, dupe := b.tiles[i].IsDuplicate(t); dupe {
+			b.tiles[i].AddDuplicateInfo(row, col, orientation)
 			return
 		}
 	}
