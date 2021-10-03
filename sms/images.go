@@ -11,18 +11,18 @@ import (
 	"github.com/mrcook/smstilemap/sms/internal/tiler"
 )
 
-func (s *SMS) readImageOntoSMS(img image.Image) error {
+func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
 	if img == nil {
 		return fmt.Errorf("source image is nil")
 	}
 
 	// validate image is suitable for the SMS
-	if img.Bounds().Dx() > maxWidth || img.Bounds().Dy() > maxHeight {
-		return fmt.Errorf("image size too big for SMS screen (%d x %d)", maxWidth, maxHeight)
+	if img.Bounds().Dx() > maxScreenWidth || img.Bounds().Dy() > maxScreenHeight {
+		return fmt.Errorf("image size too big for SMS screen (%d x %d)", maxScreenWidth, maxScreenHeight)
 	}
 
 	// convert incoming image to a tiled representation
-	s.tiledImg = tiler.FromImage(img)
+	s.tiledImg = tiler.FromImage(img, tileSize)
 
 	// now make sure there are not too many colours for the SMS
 	if s.tiledImg.ColourCount() > maxColourCount {

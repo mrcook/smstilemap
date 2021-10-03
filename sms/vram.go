@@ -9,7 +9,7 @@ import (
 type VRAM struct {
 	// The Character generator (sprite/tile patterns) is 14 KB in size.
 	// Each tile occupies 32 bytes, allowing up to 448 unique tiles to be stored.
-	characters [448]Tile
+	characters [maxTileCount]Tile
 
 	// The Screen Map can hold the positions of the 896 tiles (768 visible) and
 	// is 1792 bytes in size. Each entry is 2-bytes wide and contains the address

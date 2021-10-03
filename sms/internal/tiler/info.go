@@ -17,14 +17,14 @@ type info struct {
 	orientation Orientation
 }
 
-func (i info) Row() int {
+func (i *info) Row() int {
 	return i.row
 }
 
-func (i info) Col() int {
+func (i *info) Col() int {
 	return i.col
 }
 
-func (i info) Orientation() Orientation {
+func (i *info) Orientation() Orientation {
 	return i.orientation
 }

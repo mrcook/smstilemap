@@ -15,7 +15,7 @@ type imageTile struct {
 
 // convertToTiles converts a pixel based image to a slice of tiles, with
 // each tile containing its original location and colour data.
-func convertToTiles(img image.Image) (tiles []imageTile) {
+func convertToTiles(img image.Image, tileSize int) (tiles []imageTile) {
 	tileBounds := image.Rectangle{Min: image.Point{}, Max: image.Point{X: tileSize, Y: tileSize}}
 
 	// the offsets enable moving the 'cursor' to the next tile location

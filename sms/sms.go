@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	tileSize       = 8   // 8x8 pixel tiles
-	maxWidth       = 256 // screen width in pixels
-	maxHeight      = 224 // screen height in pixels, only 192px are visible
-	maxColourCount = 64  // maximum system colours
+	tileSize        = 8   // SMS tiles are 8x8 pixels
+	maxTileCount    = 448 // maximum number of tiles the VDP can store
+	maxColourCount  = 64  // maximum colours the SMS supports
+	maxScreenWidth  = 256 // screen width in pixels
+	maxScreenHeight = 224 // screen height in pixels, only 192px are visible on the SMS
 )
 
 // SMS represents an image used for generating SMS character/palette data.
@@ -23,7 +24,7 @@ type SMS struct {
 
 // FromImage converts the given image into SMS image data.
 func (s *SMS) FromImage(img image.Image) error {
-	return s.readImageOntoSMS(img)
+	return s.readImageOntoSMS(img, tileSize)
 }
 
 // ToImage converts the tiled data to a new NRGBA image, with all tiles mapped

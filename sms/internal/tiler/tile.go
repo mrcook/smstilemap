@@ -8,10 +8,10 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-const tileSize = 8 // tile size in pixels
-
-// Tile is an 8x8 pixel tile from the original image.
+// Tile is an 8x8 pixel image tile.
 type Tile struct {
+	tileSize int // normally 8x8 pixels
+
 	// original image (tile) data; location and colour data
 	info         info
 	orientations map[Orientation]image.Image
@@ -21,8 +21,9 @@ type Tile struct {
 	duplicates []info
 }
 
-func New(row, col int, tileImage image.Image) *Tile {
+func New(row, col, tileSize int, tileImage image.Image) *Tile {
 	t := Tile{
+		tileSize:     tileSize,
 		info:         info{row: row, col: col, orientation: OrientationNormal},
 		orientations: make(map[Orientation]image.Image, 4),
 	}
@@ -31,28 +32,28 @@ func New(row, col int, tileImage image.Image) *Tile {
 }
 
 // A new tile, with all its different flipped orientations generated
-func newWithOrientations(row, col int, tileImage image.Image) *Tile {
-	t := New(row, col, tileImage)
+func newWithOrientations(row, col, tileSize int, tileImage image.Image) *Tile {
+	t := New(row, col, tileSize, tileImage)
 	t.generateFlippedOrientations()
 	return t
 }
 
 // Info returns the row/col and orientation info for the tile.
-func (t Tile) Info() *info {
+func (t *Tile) Info() *info {
 	return &t.info
 }
 
 // RowInPixels is the tile row in pixels, as located in the source image.
-func (t Tile) RowInPixels() int {
-	return t.info.row * tileSize
+func (t *Tile) RowInPixels() int {
+	return t.info.row * t.tileSize
 }
 
 // ColInPixels is the tile column in pixels, as located in the source image.
-func (t Tile) ColInPixels() int {
-	return t.info.col * tileSize
+func (t *Tile) ColInPixels() int {
+	return t.info.col * t.tileSize
 }
 
-func (t Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {
+func (t *Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {
 	o, ok := t.orientations[orientation]
 	if !ok {
 		return color.NRGBA{}, fmt.Errorf("invalid orientation: %016b", orientation)
@@ -67,12 +68,12 @@ func (t *Tile) AddDuplicateInfo(row, col int, orientation Orientation) {
 }
 
 // DuplicateCount returns number of duplicates for the tile.
-func (t Tile) DuplicateCount() int {
+func (t *Tile) DuplicateCount() int {
 	return len(t.duplicates)
 }
 
 // GetDuplicateInfo returns the duplicate at the given index number.
-func (t Tile) GetDuplicateInfo(id int) (*info, error) {
+func (t *Tile) GetDuplicateInfo(id int) (*info, error) {
 	if id >= len(t.duplicates) {
 		return nil, fmt.Errorf("tile duplicate index out of range: %d", id)
 	}
@@ -82,7 +83,7 @@ func (t Tile) GetDuplicateInfo(id int) (*info, error) {
 // IsDuplicate tests the tile image for matching colours.
 // If no match is found, then the image is flipped vertically, horizontally,
 // and in both planes, and tested again after each.
-func (t Tile) IsDuplicate(tile *Tile) (Orientation, bool) {
+func (t *Tile) IsDuplicate(tile *Tile) (Orientation, bool) {
 	// TODO: use goroutines?
 	if t.matchingColours(tile, OrientationNormal) {
 		return OrientationNormal, true
@@ -97,7 +98,7 @@ func (t Tile) IsDuplicate(tile *Tile) (Orientation, bool) {
 }
 
 // tests if the pixel colours in two tiles are an exact match
-func (t Tile) matchingColours(testTile *Tile, orientation Orientation) bool {
+func (t *Tile) matchingColours(testTile *Tile, orientation Orientation) bool {
 	base := t.orientations[orientation]
 	tileX, tileY := base.Bounds().Dx(), base.Bounds().Dy()
 
