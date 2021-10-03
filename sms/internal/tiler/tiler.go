@@ -1,4 +1,9 @@
-package image
+// Package tiler converts a standard image.Image to a tiled representation.
+// Tiles are read as 8x8 pixel images starting a the top-left of the image (0,0).
+//
+// Currently this package is marked as 'internal', however, this may change in
+// the future once its API has been better defined.
+package tiler
 
 import (
 	"fmt"
@@ -7,6 +12,7 @@ import (
 )
 
 // Background represents a tiled version of an image, consisting of unique 8x8 tiles.
+// TODO: rename this to something better!!!
 type Background struct {
 	metadata metadata               // original image details
 	tiles    []Tile                 // a set of unique tiles

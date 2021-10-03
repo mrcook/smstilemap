@@ -2,13 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"image"
 	"image/png"
 	"log"
 	"os"
 
-	background "github.com/mrcook/smstilemap/image"
 	"github.com/mrcook/smstilemap/sms"
 )
 
@@ -19,20 +17,17 @@ func main() {
 	pngImage, err := openPNG(srcFilename)
 	if err != nil {
 		log.Fatal(err)
-	} else if pngImage.Bounds().Dx() > sms.MaxWidth || pngImage.Bounds().Dy() > sms.MaxHeight {
-		log.Fatal(fmt.Sprintf("image size too big for SMS screen (%d x %d)", sms.MaxWidth, sms.MaxHeight))
 	}
+
+	vdp := sms.SMS{}
 
 	// convert PNG image to a tiled representation
-	bg := background.FromImage(pngImage)
-	if bg.Info().UniqueColourCount > sms.MaxColourCount {
-		log.Fatal(fmt.Sprintf("too many unique colours for SMS (max: %d)", sms.MaxColourCount))
+	if err := vdp.FromImage(pngImage); err != nil {
+		log.Fatal(err)
 	}
 
-	// dstImage, err := toImage(bg) // only unique tiles
-
 	// convert the tiles back to a normal image
-	dstImage, err := tileMappedToImage(bg)
+	dstImage, err := vdp.ToImage()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,81 +36,6 @@ func main() {
 	if err := saveImage(dstImage, dstFilename); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// ToImage converts the tiles to an NRGBA image.
-func toImage(bg *background.Background) (image.Image, error) {
-	rows := bg.TileCount() / bg.Info().Cols
-	if bg.TileCount()%bg.Info().Cols > 0 {
-		rows += 1 // make up missing row
-	}
-	rows *= background.Size
-	cols := bg.Info().Width
-
-	img := image.NewNRGBA(image.Rectangle{
-		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: cols, Y: rows},
-	})
-
-	xOffset := 0
-	yOffset := 0
-
-	for i := 0; i < bg.TileCount(); i++ {
-		bgTile, _ := bg.GetTile(i)
-		if err := drawTileAt(bgTile, img, i, yOffset, xOffset, background.OrientationNormal); err != nil {
-			return nil, err
-		}
-		xOffset += background.Size
-		if xOffset >= cols {
-			xOffset = 0
-			yOffset += background.Size
-		}
-	}
-
-	return img, nil
-}
-
-// Converts the tiles to a new NRGBA image, with all tiles mapped back to
-// their original positions.
-func tileMappedToImage(bg *background.Background) (image.Image, error) {
-	img := image.NewNRGBA(image.Rectangle{
-		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: bg.Info().Width, Y: bg.Info().Height},
-	})
-
-	for i := 0; i < bg.TileCount(); i++ {
-		bgTile, _ := bg.GetTile(i)
-
-		y := bgTile.RowInPixels()
-		x := bgTile.ColInPixels()
-		if err := drawTileAt(bgTile, img, i, y, x, background.OrientationNormal); err != nil {
-			return nil, err
-		}
-
-		for did := 0; did < bgTile.DuplicateCount(); did++ {
-			info, _ := bgTile.GetDuplicateInfo(did)
-			y = info.Row() * background.Size
-			x = info.Col() * background.Size
-			if err := drawTileAt(bgTile, img, i, y, x, info.Orientation()); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return img, nil
-}
-
-func drawTileAt(t *background.Tile, img *image.NRGBA, tileIndex, pxOffsetY, pxOffsetX int, orientation background.Orientation) error {
-	for y := 0; y < background.Size; y++ {
-		for x := 0; x < background.Size; x++ {
-			colour, err := t.OrientationAt(y, x, orientation)
-			if err != nil {
-				return fmt.Errorf("draw tile error: %w", err)
-			}
-			img.Set(pxOffsetX+x, pxOffsetY+y, colour)
-		}
-	}
-	return nil
 }
 
 func openPNG(filename string) (image.Image, error) {

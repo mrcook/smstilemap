@@ -1,38 +1,32 @@
 package sms
 
-import background "github.com/mrcook/smstilemap/image"
+import (
+	"image"
 
-const (
-	MaxWidth       = 256
-	MaxHeight      = 224
-	MaxColourCount = 64
+	"github.com/mrcook/smstilemap/sms/internal/tiler"
 )
 
+const (
+	maxWidth       = 256
+	maxHeight      = 224
+	maxColourCount = 64
+)
+
+// SMS represents an image used for generating SMS character/palette data.
 type SMS struct {
-	videoRAM  *VRAM
-	colourRAM *CRAM
+	videoRAM  VRAM
+	colourRAM CRAM
+
+	tiledImg *tiler.Background // tiled version of the source image
 }
 
-// FromBackgroundImage converts a tile mapped image to SMS data.
-func FromBackgroundImage(bg *background.Background) (*SMS, error) {
-	sms := SMS{
-		videoRAM:  &VRAM{},
-		colourRAM: &CRAM{},
-	}
+// FromImage converts the given image into SMS image data.
+func (s *SMS) FromImage(img image.Image) error {
+	return s.readImageOntoSMS(img)
+}
 
-	// TODO: need to generate colour palette data from the tiles
-	//       should SMS do that, or should it be done in `image` first?
-	//       Perhaps in image it could be part of the _validations_?
-
-	// convert all background tiles to planar data and add to tilemap
-	for i := 0; i < bg.TileCount(); i++ {
-		if tile, err := bg.GetTile(i); err != nil {
-			return nil, err
-		} else {
-			sms.videoRAM.addCharacter(i, tile)
-			sms.videoRAM.addTilemapEntry(tile)
-		}
-	}
-
-	return &sms, nil
+// ToImage converts the tiled data to a new NRGBA image, with all tiles mapped
+// back to their original positions.
+func (s *SMS) ToImage() (image.Image, error) {
+	return s.convertToImage()
 }

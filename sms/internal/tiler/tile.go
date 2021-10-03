@@ -1,4 +1,4 @@
-package image
+package tiler
 
 import (
 	"fmt"

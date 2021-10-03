@@ -1,4 +1,4 @@
-package image
+package tiler
 
 // Orientation is a 16-bit number for use in the named table entry: ---pcvhnnnnnnnnn
 // This binary number contains only the Vertical and Horizontal bits flipped so

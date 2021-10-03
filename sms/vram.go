@@ -1,6 +1,8 @@
 package sms
 
-import "github.com/mrcook/smstilemap/image"
+import (
+	"github.com/mrcook/smstilemap/sms/internal/tiler"
+)
 
 // VRAM (Video RAM) has an area dedicated to tiles called the Character
 // generator (Sega calls tiles 'Characters'), along with the tilemap and SAT.
@@ -22,12 +24,12 @@ type VRAM struct {
 	sat [256]uint8
 }
 
-func (v *VRAM) addCharacter(i int, tile *image.Tile) {
+func (v *VRAM) addCharacter(i int, tile *tiler.Tile) {
 	// add planar data
 	v.characters[i] = Tile{} // TODO: generate the data
 }
 
-func (v *VRAM) addTilemapEntry(tile *image.Tile) {
+func (v *VRAM) addTilemapEntry(tile *tiler.Tile) {
 	word := Word{} // TODO: generate the word
 	inf := tile.Info()
 	v.nameTable.Set(inf.Row(), inf.Col(), word)
