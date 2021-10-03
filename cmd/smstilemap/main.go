@@ -9,20 +9,29 @@ import (
 	"os"
 
 	background "github.com/mrcook/smstilemap/image"
+	"github.com/mrcook/smstilemap/sms"
 )
 
 func main() {
 	srcFilename := parseCliForFilename()
 	dstFilename := srcFilename + "-new.png" // simple but works
 
-	srcImage, err := openImage(srcFilename)
+	pngImage, err := openPNG(srcFilename)
 	if err != nil {
 		log.Fatal(err)
+	} else if pngImage.Bounds().Dx() > sms.MaxWidth || pngImage.Bounds().Dy() > sms.MaxHeight {
+		log.Fatal(fmt.Sprintf("image size too big for SMS screen (%d x %d)", sms.MaxWidth, sms.MaxHeight))
 	}
 
-	// process it
-	bg := background.FromImage(srcImage)
+	// convert PNG image to a tiled representation
+	bg := background.FromImage(pngImage)
+	if bg.Info().UniqueColourCount > sms.MaxColourCount {
+		log.Fatal(fmt.Sprintf("too many unique colours for SMS (max: %d)", sms.MaxColourCount))
+	}
+
 	// dstImage, err := toImage(bg) // only unique tiles
+
+	// convert the tiles back to a normal image
 	dstImage, err := tileMappedToImage(bg)
 	if err != nil {
 		log.Fatal(err)
@@ -109,7 +118,7 @@ func drawTileAt(t *background.Tile, img *image.NRGBA, tileIndex, pxOffsetY, pxOf
 	return nil
 }
 
-func openImage(filename string) (image.Image, error) {
+func openPNG(filename string) (image.Image, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err

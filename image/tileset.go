@@ -3,12 +3,14 @@ package image
 import (
 	"fmt"
 	"image"
+	"image/color"
 )
 
 // Background represents a tiled version of an image, consisting of unique 8x8 tiles.
 type Background struct {
-	metadata metadata // original image details
-	tiles    []Tile   // a set of unique tiles
+	metadata metadata               // original image details
+	tiles    []Tile                 // a set of unique tiles
+	palette  map[string]color.Color // map of unique colours found in the image
 }
 
 // FromImage returns a new Background tile set from the given image data.
@@ -20,9 +22,11 @@ func FromImage(img image.Image) *Background {
 			Width:  img.Bounds().Dx(),
 			Height: img.Bounds().Dy(),
 		},
+		palette: make(map[string]color.Color, 64),
 	}
 	tiles := imageToTiles(img)
 	bg.generateUniqueTileList(tiles)
+	bg.metadata.UniqueColourCount = len(bg.palette)
 
 	return &bg
 }
@@ -48,23 +52,42 @@ func (b Background) Info() *metadata {
 // processes the tile list, recording all unique tiles, and adding duplicate
 // info if the tile is already present.
 func (b *Background) generateUniqueTileList(tiles []imageTile) {
-	for _, t := range tiles {
-		b.addTile(t.row, t.col, t.image)
+	for _, tile := range tiles {
+		b.addTile(&tile)
 	}
 }
 
 // add a tile to the current background tiles, either as a new unique tile
 // or as a duplicate of an existing tile, when flipped in one of the supported
 // vertical/horizontal orientations.
-func (b *Background) addTile(row, col int, img image.Image) {
-	// iterate over existing tiles and add as duplicate if a match is found
+func (b *Background) addTile(tile *imageTile) {
+	// add as a duplicate if an existing tile match is found
 	for i := 0; i < len(b.tiles); i++ {
-		t := New(row, col, img)
-		if orientation, dupe := b.tiles[i].IsDuplicate(t); dupe {
-			b.tiles[i].AddDuplicateInfo(row, col, orientation)
+		if b.addIfDuplicate(i, tile) {
 			return
 		}
 	}
 
-	b.tiles = append(b.tiles, *NewWithOrientations(row, col, img))
+	// if not duplicate found, add as a new tile
+	b.addTileColoursToPalette(tile)
+	b.tiles = append(b.tiles, *newWithOrientations(tile.row, tile.col, tile.image))
+}
+
+// if a tile is a duplicate, add it to the duplicates list
+func (b *Background) addIfDuplicate(tileID int, tile *imageTile) bool {
+	t := New(tile.row, tile.col, tile.image)
+	if orientation, dupe := b.tiles[tileID].IsDuplicate(t); dupe {
+		b.tiles[tileID].AddDuplicateInfo(tile.row, tile.col, orientation)
+		return true
+	}
+	return false
+}
+
+// adds the tile palette to the global palette data
+func (b *Background) addTileColoursToPalette(tile *imageTile) {
+	for k, v := range tile.palette {
+		if _, found := b.palette[k]; !found {
+			b.palette[k] = v
+		}
+	}
 }

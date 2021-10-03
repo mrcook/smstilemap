@@ -2,6 +2,12 @@ package sms
 
 import background "github.com/mrcook/smstilemap/image"
 
+const (
+	MaxWidth       = 256
+	MaxHeight      = 224
+	MaxColourCount = 64
+)
+
 type SMS struct {
 	videoRAM  *VRAM
 	colourRAM *CRAM

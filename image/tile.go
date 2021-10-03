@@ -30,7 +30,8 @@ func New(row, col int, tileImage image.Image) *Tile {
 	return &t
 }
 
-func NewWithOrientations(row, col int, tileImage image.Image) *Tile {
+// A new tile, with all its different flipped orientations generated
+func newWithOrientations(row, col int, tileImage image.Image) *Tile {
 	t := New(row, col, tileImage)
 	t.generateFlippedOrientations()
 	return t
