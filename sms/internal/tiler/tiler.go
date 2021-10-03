@@ -13,27 +13,37 @@ import (
 
 // Tiled represents a tiled version of an image, consisting of unique 8x8 tiles.
 type Tiled struct {
-	metadata metadata               // original image details
-	tiles    []Tile                 // a set of unique tiles
-	palette  map[string]color.Color // map of unique colours found in the image
+	width  int // image width in pixels
+	height int // image height in pixels
+	rows   int // image row count (in 8x8 tiles)
+	cols   int // image column count (in 8x8 tiles)
+
+	tiles   []Tile                 // a set of unique tiles
+	palette map[string]color.Color // map of unique colours found in the image
 }
 
 // FromImage returns a new tile set from the given image data.
 func FromImage(img image.Image) *Tiled {
 	bg := Tiled{
-		metadata: metadata{
-			Rows:   img.Bounds().Dy() / Size,
-			Cols:   img.Bounds().Dx() / Size,
-			Width:  img.Bounds().Dx(),
-			Height: img.Bounds().Dy(),
-		},
+		rows:    img.Bounds().Dy() / tileSize,
+		cols:    img.Bounds().Dx() / tileSize,
+		width:   img.Bounds().Dx(),
+		height:  img.Bounds().Dy(),
 		palette: make(map[string]color.Color, 64),
 	}
-	tiles := imageToTiles(img)
+
+	tiles := convertToTiles(img)
 	bg.generateUniqueTileList(tiles)
-	bg.metadata.UniqueColourCount = len(bg.palette)
 
 	return &bg
+}
+
+func (b Tiled) Width() int {
+	return b.width
+}
+
+func (b Tiled) Height() int {
+	return b.height
 }
 
 // GetTile returns the tile for the given index number.
@@ -49,9 +59,9 @@ func (b Tiled) TileCount() int {
 	return len(b.tiles)
 }
 
-// Info is the background image metadata (width, height, etc.).
-func (b Tiled) Info() *metadata {
-	return &b.metadata
+// ColourCount is the total number of unique colours in the image.
+func (b Tiled) ColourCount() int {
+	return len(b.palette)
 }
 
 // processes the tile list, recording all unique tiles, and adding duplicate
@@ -75,14 +85,14 @@ func (b *Tiled) addTile(tile *imageTile) {
 
 	// if not duplicate found, add as a new tile
 	b.addTileColoursToPalette(tile)
-	b.tiles = append(b.tiles, *newWithOrientations(tile.row, tile.col, tile.image))
+	b.tiles = append(b.tiles, *newWithOrientations(tile.posX, tile.posY, tile.image))
 }
 
 // if a tile is a duplicate, add it to the duplicates list
 func (b *Tiled) addIfDuplicate(tileID int, tile *imageTile) bool {
-	t := New(tile.row, tile.col, tile.image)
+	t := New(tile.posX, tile.posY, tile.image)
 	if orientation, dupe := b.tiles[tileID].IsDuplicate(t); dupe {
-		b.tiles[tileID].AddDuplicateInfo(tile.row, tile.col, orientation)
+		b.tiles[tileID].AddDuplicateInfo(tile.posX, tile.posY, orientation)
 		return true
 	}
 	return false

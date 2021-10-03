@@ -6,40 +6,31 @@ import (
 	"image/color"
 )
 
-// Info contains data about the original image
-type metadata struct {
-	Rows              int // in 8x8 tiles
-	Cols              int // in 8x8 tiles
-	Width             int // in pixels
-	Height            int // in pixels
-	UniqueColourCount int // number of unique colours in the image
-}
-
 // imageTile holds an 8x8 pixel tile from the original image
 type imageTile struct {
-	row, col int                    // tile location
-	palette  map[string]color.Color // use the HEX colour value as the key (e.g. "#FF0000")
-	image    *image.NRGBA
+	posX, posY int                    // tile location in rows, cols.
+	palette    map[string]color.Color // using the HEX colour value as the key (e.g. "#FF0000")
+	image      *image.NRGBA
 }
 
-// imageToTiles converts a pixel based image to a slice of tiles, with
+// convertToTiles converts a pixel based image to a slice of tiles, with
 // each tile containing its original location and colour data.
-func imageToTiles(img image.Image) (tiles []imageTile) {
-	tileBounds := image.Rectangle{Min: image.Point{}, Max: image.Point{X: Size, Y: Size}}
+func convertToTiles(img image.Image) (tiles []imageTile) {
+	tileBounds := image.Rectangle{Min: image.Point{}, Max: image.Point{X: tileSize, Y: tileSize}}
 
 	// the offsets enable moving the 'cursor' to the next tile location
-	for rowOffset := 0; rowOffset < img.Bounds().Dy(); rowOffset += Size {
-		for colOffset := 0; colOffset < img.Bounds().Dx(); colOffset += Size {
+	for rowOffset := 0; rowOffset < img.Bounds().Dy(); rowOffset += tileSize {
+		for colOffset := 0; colOffset < img.Bounds().Dx(); colOffset += tileSize {
 			newTile := imageTile{
-				row:     rowOffset / Size,
-				col:     colOffset / Size,
+				posX:    rowOffset / tileSize,
+				posY:    colOffset / tileSize,
 				image:   image.NewNRGBA(tileBounds),
 				palette: make(map[string]color.Color),
 			}
 
 			// fetch the 8x8 tile colour data
-			for y := 0; y < Size; y++ {
-				for x := 0; x < Size; x++ {
+			for y := 0; y < tileSize; y++ {
+				for x := 0; x < tileSize; x++ {
 					colour := img.At(colOffset+x, rowOffset+y)
 
 					// add the pixel colour to the tile image

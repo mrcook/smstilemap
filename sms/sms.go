@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	maxWidth       = 256
-	maxHeight      = 224
-	maxColourCount = 64
+	tileSize       = 8   // 8x8 pixel tiles
+	maxWidth       = 256 // screen width in pixels
+	maxHeight      = 224 // screen height in pixels, only 192px are visible
+	maxColourCount = 64  // maximum system colours
 )
 
 // SMS represents an image used for generating SMS character/palette data.

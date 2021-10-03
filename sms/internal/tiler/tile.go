@@ -8,7 +8,7 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-const Size = 8 // tile size in pixels
+const tileSize = 8 // tile size in pixels
 
 // Tile is an 8x8 pixel tile from the original image.
 type Tile struct {
@@ -44,12 +44,12 @@ func (t Tile) Info() *info {
 
 // RowInPixels is the tile row in pixels, as located in the source image.
 func (t Tile) RowInPixels() int {
-	return t.info.row * Size
+	return t.info.row * tileSize
 }
 
 // ColInPixels is the tile column in pixels, as located in the source image.
 func (t Tile) ColInPixels() int {
-	return t.info.col * Size
+	return t.info.col * tileSize
 }
 
 func (t Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {

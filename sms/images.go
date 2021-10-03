@@ -24,8 +24,8 @@ func (s *SMS) readImageOntoSMS(img image.Image) error {
 	// convert incoming image to a tiled representation
 	s.tiledImg = tiler.FromImage(img)
 
-	// make sure there are not too many colours for the SMS
-	if s.tiledImg.Info().UniqueColourCount > maxColourCount {
+	// now make sure there are not too many colours for the SMS
+	if s.tiledImg.ColourCount() > maxColourCount {
 		return fmt.Errorf("too many unique colours for SMS (max: %d)", maxColourCount)
 	}
 
@@ -51,7 +51,7 @@ func (s *SMS) convertToImage() (image.Image, error) {
 
 	img := image.NewNRGBA(image.Rectangle{
 		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: bg.Info().Width, Y: bg.Info().Height},
+		Max: image.Point{X: bg.Width(), Y: bg.Height()},
 	})
 
 	for i := 0; i < bg.TileCount(); i++ {
@@ -65,8 +65,8 @@ func (s *SMS) convertToImage() (image.Image, error) {
 
 		for did := 0; did < bgTile.DuplicateCount(); did++ {
 			info, _ := bgTile.GetDuplicateInfo(did)
-			y = info.Row() * tiler.Size
-			x = info.Col() * tiler.Size
+			y = info.Row() * tileSize
+			x = info.Col() * tileSize
 			if err := s.drawTileAt(bgTile, img, y, x, info.Orientation()); err != nil {
 				return nil, err
 			}
@@ -77,8 +77,8 @@ func (s *SMS) convertToImage() (image.Image, error) {
 }
 
 func (s SMS) drawTileAt(t *tiler.Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation tiler.Orientation) error {
-	for y := 0; y < tiler.Size; y++ {
-		for x := 0; x < tiler.Size; x++ {
+	for y := 0; y < tileSize; y++ {
+		for x := 0; x < tileSize; x++ {
 			colour, err := t.OrientationAt(y, x, orientation)
 			if err != nil {
 				return fmt.Errorf("draw tile error: %w", err)
