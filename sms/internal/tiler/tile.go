@@ -11,20 +11,19 @@ import (
 // Tile is an 8x8 pixel image tile.
 type Tile struct {
 	tileSize int // normally 8x8 pixels
+	*info        // basic data; row, col, and orientation
 
-	// original image (tile) data; location and colour data
-	info         info
-	orientations map[Orientation]image.Image
-
-	// duplicate tiles located in the image (based on their RGBA colours);
-	// exact match, along with vertically and horizontally flipped
+	// location/orientation data for all duplicate tiles located in the image,
+	// based on their RGBA colours; exact match, vertically and horizontally flipped
 	duplicates []info
+
+	orientations map[Orientation]image.Image // the tile image data in all its orientations
 }
 
 func New(row, col, tileSize int, tileImage image.Image) *Tile {
 	t := Tile{
 		tileSize:     tileSize,
-		info:         info{row: row, col: col, orientation: OrientationNormal},
+		info:         &info{row: row, col: col, orientation: OrientationNormal},
 		orientations: make(map[Orientation]image.Image, 4),
 	}
 	t.orientations[OrientationNormal] = tileImage
@@ -38,19 +37,14 @@ func newWithOrientations(row, col, tileSize int, tileImage image.Image) *Tile {
 	return t
 }
 
-// Info returns the row/col and orientation info for the tile.
-func (t *Tile) Info() *info {
-	return &t.info
-}
-
 // RowInPixels is the tile row in pixels, as located in the source image.
 func (t *Tile) RowInPixels() int {
-	return t.info.row * t.tileSize
+	return t.row * t.tileSize
 }
 
 // ColInPixels is the tile column in pixels, as located in the source image.
 func (t *Tile) ColInPixels() int {
-	return t.info.col * t.tileSize
+	return t.col * t.tileSize
 }
 
 func (t *Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {

@@ -31,8 +31,7 @@ func (v *VRAM) addCharacter(i int, tile *tiler.Tile) {
 
 func (v *VRAM) addTilemapEntry(tile *tiler.Tile) {
 	word := Word{} // TODO: generate the word
-	inf := tile.Info()
-	v.nameTable.Set(inf.Row(), inf.Col(), word)
+	v.nameTable.Set(tile.Row(), tile.Col(), word)
 
 	// add any duplicates
 	for i := 0; i < tile.DuplicateCount(); i++ {

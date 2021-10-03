@@ -19,7 +19,7 @@ type Tiled struct {
 	rows     int // image row count (in 8x8 tiles)
 	cols     int // image column count (in 8x8 tiles)
 
-	tiles   []Tile                 // a set of unique tiles
+	tiles   []Tile                 // a set of unique tiles making up the image
 	palette map[string]color.Color // map of unique colours found in the image
 }
 

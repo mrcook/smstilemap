@@ -12,12 +12,10 @@ import (
 )
 
 func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
+	// validate image is suitable for the SMS
 	if img == nil {
 		return fmt.Errorf("source image is nil")
-	}
-
-	// validate image is suitable for the SMS
-	if img.Bounds().Dx() > maxScreenWidth || img.Bounds().Dy() > maxScreenHeight {
+	} else if img.Bounds().Dx() > maxScreenWidth || img.Bounds().Dy() > maxScreenHeight {
 		return fmt.Errorf("image size too big for SMS screen (%d x %d)", maxScreenWidth, maxScreenHeight)
 	}
 
