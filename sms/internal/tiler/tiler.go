@@ -11,17 +11,16 @@ import (
 	"image/color"
 )
 
-// Background represents a tiled version of an image, consisting of unique 8x8 tiles.
-// TODO: rename this to something better!!!
-type Background struct {
+// Tiled represents a tiled version of an image, consisting of unique 8x8 tiles.
+type Tiled struct {
 	metadata metadata               // original image details
 	tiles    []Tile                 // a set of unique tiles
 	palette  map[string]color.Color // map of unique colours found in the image
 }
 
-// FromImage returns a new Background tile set from the given image data.
-func FromImage(img image.Image) *Background {
-	bg := Background{
+// FromImage returns a new tile set from the given image data.
+func FromImage(img image.Image) *Tiled {
+	bg := Tiled{
 		metadata: metadata{
 			Rows:   img.Bounds().Dy() / Size,
 			Cols:   img.Bounds().Dx() / Size,
@@ -38,7 +37,7 @@ func FromImage(img image.Image) *Background {
 }
 
 // GetTile returns the tile for the given index number.
-func (b Background) GetTile(id int) (*Tile, error) {
+func (b Tiled) GetTile(id int) (*Tile, error) {
 	if id >= b.TileCount() {
 		return nil, fmt.Errorf("background tile index out of range: %d", id)
 	}
@@ -46,18 +45,18 @@ func (b Background) GetTile(id int) (*Tile, error) {
 }
 
 // TileCount is the total number of unique tiles in the background image.
-func (b Background) TileCount() int {
+func (b Tiled) TileCount() int {
 	return len(b.tiles)
 }
 
 // Info is the background image metadata (width, height, etc.).
-func (b Background) Info() *metadata {
+func (b Tiled) Info() *metadata {
 	return &b.metadata
 }
 
 // processes the tile list, recording all unique tiles, and adding duplicate
 // info if the tile is already present.
-func (b *Background) generateUniqueTileList(tiles []imageTile) {
+func (b *Tiled) generateUniqueTileList(tiles []imageTile) {
 	for _, tile := range tiles {
 		b.addTile(&tile)
 	}
@@ -66,7 +65,7 @@ func (b *Background) generateUniqueTileList(tiles []imageTile) {
 // add a tile to the current background tiles, either as a new unique tile
 // or as a duplicate of an existing tile, when flipped in one of the supported
 // vertical/horizontal orientations.
-func (b *Background) addTile(tile *imageTile) {
+func (b *Tiled) addTile(tile *imageTile) {
 	// add as a duplicate if an existing tile match is found
 	for i := 0; i < len(b.tiles); i++ {
 		if b.addIfDuplicate(i, tile) {
@@ -80,7 +79,7 @@ func (b *Background) addTile(tile *imageTile) {
 }
 
 // if a tile is a duplicate, add it to the duplicates list
-func (b *Background) addIfDuplicate(tileID int, tile *imageTile) bool {
+func (b *Tiled) addIfDuplicate(tileID int, tile *imageTile) bool {
 	t := New(tile.row, tile.col, tile.image)
 	if orientation, dupe := b.tiles[tileID].IsDuplicate(t); dupe {
 		b.tiles[tileID].AddDuplicateInfo(tile.row, tile.col, orientation)
@@ -90,7 +89,7 @@ func (b *Background) addIfDuplicate(tileID int, tile *imageTile) bool {
 }
 
 // adds the tile palette to the global palette data
-func (b *Background) addTileColoursToPalette(tile *imageTile) {
+func (b *Tiled) addTileColoursToPalette(tile *imageTile) {
 	for k, v := range tile.palette {
 		if _, found := b.palette[k]; !found {
 			b.palette[k] = v

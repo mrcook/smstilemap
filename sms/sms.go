@@ -17,7 +17,7 @@ type SMS struct {
 	videoRAM  VRAM
 	colourRAM CRAM
 
-	tiledImg *tiler.Background // tiled version of the source image
+	tiledImg *tiler.Tiled // tiled version of the source image
 }
 
 // FromImage converts the given image into SMS image data.
