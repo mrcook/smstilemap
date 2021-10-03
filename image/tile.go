@@ -36,6 +36,11 @@ func NewWithOrientations(row, col int, tileImage image.Image) *Tile {
 	return t
 }
 
+// Info returns the row/col and orientation info for the tile.
+func (t Tile) Info() *info {
+	return &t.info
+}
+
 // RowInPixels is the tile row in pixels, as located in the source image.
 func (t Tile) RowInPixels() int {
 	return t.info.row * Size
