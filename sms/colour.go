@@ -9,19 +9,20 @@ package sms
 //     %: Unused | Blue | Green | Red
 type Colour uint8
 
-// FromRGB converts 8-bit RGB values to one of the 64 SMS colours.
-// Conversion: 0-52 = 0, 53-127 = 85, 128-202 = 170, 203-255 = 255
+// FromRGB gets one of the SMS colours for the given RGB values.
 func FromRGB(r, g, b uint8) Colour {
-	r = matchToNearestSmsColour(r)
-	g = matchToNearestSmsColour(g)
-	b = matchToNearestSmsColour(b)
-
 	for value, colour := range smsColours {
 		if r == colour.r && g == colour.g && b == colour.b {
 			return value
 		}
 	}
 	return 0
+}
+
+// FromNearestMatchRGB using a nearest match, converts 8-bit RGB values to a SMS colour.
+// Conversion ranges: 0-52 = 0, 53-127 = 85, 128-202 = 170, 203-255 = 255
+func FromNearestMatchRGB(r, g, b uint8) Colour {
+	return FromRGB(matchToNearestSmsColour(r), matchToNearestSmsColour(g), matchToNearestSmsColour(b))
 }
 
 func (c Colour) RGB() (r, g, b uint8) {

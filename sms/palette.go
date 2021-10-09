@@ -19,6 +19,11 @@ package sms
 // So, for example, if there was a little blue, no green and a lot of red, the
 // colour would be %00010011.
 type Palette struct {
-	Background [16]Colour
-	Sprites    [16]Colour
+	// TODO: or two palettes? And if so, make Palette a slice not a struct?
+	// Background [16]Colour
+	// Sprites    [16]Colour
+	Colours [32]Colour
 }
+
+// PaletteId references one of the possible 32 palette colours.
+type PaletteId uint8

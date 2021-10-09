@@ -1,7 +1,7 @@
 package sms
 
 import (
-	"github.com/mrcook/smstilemap/sms/internal/tiler"
+	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 // VRAM (Video RAM) has an area dedicated to tiles called the Character
@@ -24,22 +24,19 @@ type VRAM struct {
 	sat [256]uint8
 }
 
-func (v *VRAM) addCharacter(i int, tile *tiler.Tile) {
-	// add planar data
-	v.characters[i] = Tile{} // TODO: generate the data
+// adds the planar data for each tile
+func (v *VRAM) addTile(tileID int) {
+	t := Tile{}
+	v.characters[tileID] = t
 }
 
-func (v *VRAM) addTilemapEntry(tile *tiler.Tile) {
-	word := Word{} // TODO: generate the word
-	v.nameTable.Set(tile.Row(), tile.Col(), word)
-
-	// add any duplicates
-	for i := 0; i < tile.DuplicateCount(); i++ {
-		inf, err := tile.GetDuplicateInfo(i)
-		if err != nil {
-			break // TODO: break?
-		}
-		word := Word{} // TODO: generate the word
-		v.nameTable.Set(inf.Row(), inf.Col(), word)
+func (v *VRAM) addTilemapEntry(tileID, row, col int, or orientation.Orientation) {
+	word := Word{
+		Priority:      false, // set as a background tile
+		PaletteSelect: false, // use the background tile palette
+		TileNumber:    uint16(tileID),
 	}
+	word.SetFlippedStateFromOrientation(or)
+
+	v.nameTable.Set(row, col, word)
 }

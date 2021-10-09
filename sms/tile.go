@@ -14,6 +14,14 @@ package sms
 // tiles; that is enough space for 448 tiles. (With some tricks you can get
 // space for a few more.)
 
+// Tile is a type holding the colour data for an 8x8 pixel tile
 type Tile struct {
-	planarData [32]uint8 // TODO: or use [8][4]uint8 ?
+	pixels [64]PaletteId // TODO: or make it an [8][8]PaletteId slice?
+
+	palette *Palette // TODO: store here are just pass references in the funcs?
+}
+
+// ToPlanarData converts a tile to an SMS planar data slice.
+func (t *Tile) ToPlanarData() [32]uint8 {
+	return [32]uint8{} // TODO: implement
 }

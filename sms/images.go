@@ -9,6 +9,7 @@ import (
 	"image"
 
 	"github.com/mrcook/smstilemap/sms/internal/tiler"
+	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
@@ -32,12 +33,26 @@ func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
 		if tile, err := s.tiledImg.GetTile(i); err != nil {
 			return err
 		} else {
-			s.videoRAM.addCharacter(i, tile)
-			s.videoRAM.addTilemapEntry(tile)
+			s.videoRAM.addTile(i)
+			s.addTilemapEntries(i, tile)
 		}
 	}
 
 	return nil
+}
+
+func (s *SMS) addTilemapEntries(tileID int, tile *tiler.Tile) {
+	// add the normal orientation tile
+	s.videoRAM.addTilemapEntry(tileID, tile.Row(), tile.Col(), tile.Orientation())
+
+	// add any duplicate (flipped) tiles
+	for i := 0; i < tile.DuplicateCount(); i++ {
+		inf, err := tile.GetDuplicateInfo(i)
+		if err != nil {
+			break // TODO: break?
+		}
+		s.videoRAM.addTilemapEntry(tileID, inf.Row(), inf.Col(), inf.Orientation())
+	}
 }
 
 func (s *SMS) convertScreenToImage() (image.Image, error) {
@@ -57,7 +72,7 @@ func (s *SMS) convertScreenToImage() (image.Image, error) {
 
 		y := bgTile.RowInPixels()
 		x := bgTile.ColInPixels()
-		if err := s.drawTileAt(bgTile, img, y, x, tiler.OrientationNormal); err != nil {
+		if err := s.drawTileAt(bgTile, img, y, x, orientation.Normal); err != nil {
 			return nil, err
 		}
 
@@ -74,7 +89,7 @@ func (s *SMS) convertScreenToImage() (image.Image, error) {
 	return img, nil
 }
 
-func (s SMS) drawTileAt(t *tiler.Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation tiler.Orientation) error {
+func (s SMS) drawTileAt(t *tiler.Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation orientation.Orientation) error {
 	for y := 0; y < tileSize; y++ {
 		for x := 0; x < tileSize; x++ {
 			colour, err := t.OrientationAt(y, x, orientation)

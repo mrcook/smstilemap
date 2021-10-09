@@ -42,53 +42,51 @@ func TestColour_RGB(t *testing.T) {
 }
 
 func TestColour_FromRGB(t *testing.T) {
-	t.Run("with valid SMS colour values", func(t *testing.T) {
-		table := map[string]struct {
-			colour  sms.Colour
-			r, g, b uint8
-		}{
-			"black":     {0b00000000, 0, 0, 0},
-			"darkgrey":  {0b00010101, 85, 85, 85},
-			"lightgrey": {0b00101010, 170, 170, 170},
-			"white":     {0b00111111, 255, 255, 255},
-			"red":       {0b00000011, 255, 0, 0},
-			"green":     {0b00001100, 0, 255, 0},
-			"blue":      {0b00110000, 0, 0, 255},
-		}
+	table := map[string]struct {
+		colour  sms.Colour
+		r, g, b uint8
+	}{
+		"black":     {0b00000000, 0, 0, 0},
+		"darkgrey":  {0b00010101, 85, 85, 85},
+		"lightgrey": {0b00101010, 170, 170, 170},
+		"white":     {0b00111111, 255, 255, 255},
+		"red":       {0b00000011, 255, 0, 0},
+		"green":     {0b00001100, 0, 255, 0},
+		"blue":      {0b00110000, 0, 0, 255},
+	}
 
-		for label, data := range table {
-			col := sms.FromRGB(data.r, data.g, data.b)
+	for label, data := range table {
+		col := sms.FromRGB(data.r, data.g, data.b)
 
-			t.Run(fmt.Sprintf("%s should return correct Colour value", label), func(t *testing.T) {
-				if col != data.colour {
-					t.Errorf("expected correct colour, got: %08b", col)
-				}
-			})
-		}
-	})
+		t.Run(fmt.Sprintf("%s should return correct Colour value", label), func(t *testing.T) {
+			if col != data.colour {
+				t.Errorf("expected correct colour, got: %08b", col)
+			}
+		})
+	}
+}
 
-	t.Run("when RGB values do not match any SMS colours", func(t *testing.T) {
-		table := map[string]struct {
-			colour  sms.Colour
-			r, g, b uint8
-		}{
-			"black":     {0b00000000, 0, 0, 52},
-			"darkgrey":  {0b00010101, 53, 85, 127},
-			"lightgrey": {0b00101010, 128, 170, 202},
-			"white":     {0b00111111, 203, 255, 255},
-			"red":       {0b00000011, 203, 0, 0},
-			"green":     {0b00001100, 0, 203, 0},
-			"blue":      {0b00110000, 0, 0, 203},
-		}
+func TestColour_FromNearestMatchRGB(t *testing.T) {
+	table := map[string]struct {
+		colour  sms.Colour
+		r, g, b uint8
+	}{
+		"black":     {0b00000000, 0, 0, 52},
+		"darkgrey":  {0b00010101, 53, 85, 127},
+		"lightgrey": {0b00101010, 128, 170, 202},
+		"white":     {0b00111111, 203, 255, 255},
+		"red":       {0b00000011, 203, 0, 0},
+		"green":     {0b00001100, 0, 203, 0},
+		"blue":      {0b00110000, 0, 0, 203},
+	}
 
-		for label, data := range table {
-			col := sms.FromRGB(data.r, data.g, data.b)
+	for label, data := range table {
+		col := sms.FromNearestMatchRGB(data.r, data.g, data.b)
 
-			t.Run(fmt.Sprintf("it should match to the nearest colour: %s", label), func(t *testing.T) {
-				if col != data.colour {
-					t.Errorf("expected correct match, got: %08b", col)
-				}
-			})
-		}
-	})
+		t.Run(fmt.Sprintf("it should match to the nearest colour: %s", label), func(t *testing.T) {
+			if col != data.colour {
+				t.Errorf("expected correct match, got: %08b", col)
+			}
+		})
+	}
 }
