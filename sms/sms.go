@@ -27,8 +27,8 @@ func (s *SMS) FromImage(img image.Image) error {
 	return s.readImageOntoSMS(img, tileSize)
 }
 
-// ToImage converts the tiled data to a new NRGBA image, with all tiles mapped
+// TilemapToImage converts the tiled data to a new NRGBA image, with all tiles mapped
 // back to their original positions.
-func (s *SMS) ToImage() (image.Image, error) {
-	return s.convertToImage()
+func (s *SMS) TilemapToImage() (image.Image, error) {
+	return s.convertScreenToImage()
 }

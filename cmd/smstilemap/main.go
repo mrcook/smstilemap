@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// convert the tiles back to a normal image
-	dstImage, err := vdp.ToImage()
+	dstImage, err := vdp.TilemapToImage()
 	if err != nil {
 		log.Fatal(err)
 	}

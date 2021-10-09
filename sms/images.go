@@ -40,7 +40,7 @@ func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
 	return nil
 }
 
-func (s *SMS) convertToImage() (image.Image, error) {
+func (s *SMS) convertScreenToImage() (image.Image, error) {
 	bg := s.tiledImg
 
 	if bg == nil {
