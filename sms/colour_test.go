@@ -25,6 +25,13 @@ func TestColour_RGB(t *testing.T) {
 	for label, data := range table {
 		col := sms.Colour(data.colour)
 
+		t.Run(fmt.Sprintf("%s should return correct SMS value", label), func(t *testing.T) {
+			b := col.SMS()
+			if b != data.colour {
+				t.Errorf("expected correct SMS value, got: %d", b)
+			}
+		})
+
 		t.Run(fmt.Sprintf("%s should return correct RGB values", label), func(t *testing.T) {
 			r, b, g := col.RGB()
 			if r != data.r && g != data.g && b != data.b {

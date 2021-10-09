@@ -16,8 +16,10 @@ import "fmt"
 // tiles; that is enough space for 448 tiles. (With some tricks you can get
 // space for a few more.)
 
-// SMS tiles are 8x8 pixels
-const tileSize = 8
+const (
+	tileSize       = 8 // SMS tiles are 8x8 pixels
+	planarDataSize = 32
+)
 
 // Tile is a type holding the colour data for an 8x8 pixel tile
 type Tile struct {
@@ -36,12 +38,12 @@ func (t *Tile) SetPixelAt(row, col int, colour PaletteColourId) error {
 // PixelAt gets the palette colour from the tile at row/col.
 func (t *Tile) PixelAt(row, col int) (PaletteColourId, error) {
 	if row >= tileSize || col >= tileSize {
-		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d, %d), tile size is %d", row, col, tileSize)
+		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
 	}
 	return t.pixels[row][col], nil
 }
 
 // ToPlanarData converts a tile to an SMS planar data slice.
-func (t *Tile) ToPlanarData() [32]uint8 {
-	return [32]uint8{} // TODO: implement
+func (t *Tile) ToPlanarData() [planarDataSize]uint8 {
+	return [planarDataSize]uint8{} // TODO: implement
 }

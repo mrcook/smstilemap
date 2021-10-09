@@ -7,7 +7,7 @@ package sms
 //
 //   Bit:   7 6  |  5 4 |  3 2  | 1 0
 //     %: Unused | Blue | Green | Red
-type Colour uint8
+type Colour uint8 // TODO: use struct and store all data on creation (RGB, HTML, etc.)
 
 // FromRGB gets one of the SMS colours for the given RGB values.
 func FromRGB(r, g, b uint8) Colour {
@@ -23,6 +23,10 @@ func FromRGB(r, g, b uint8) Colour {
 // Conversion ranges: 0-52 = 0, 53-127 = 85, 128-202 = 170, 203-255 = 255
 func FromNearestMatchRGB(r, g, b uint8) Colour {
 	return FromRGB(matchToNearestSmsColour(r), matchToNearestSmsColour(g), matchToNearestSmsColour(b))
+}
+
+func (c Colour) SMS() uint8 {
+	return uint8(c)
 }
 
 func (c Colour) RGB() (r, g, b uint8) {

@@ -1,5 +1,7 @@
 package sms
 
+import "fmt"
+
 // Colour RAM stores two palettes of 16 colours each.
 //
 // The first sixteen colours are the background palette and the second sixteen
@@ -19,21 +21,32 @@ package sms
 // So, for example, if there was a little blue, no green and a lot of red, the
 // colour would be %00010011.
 
+const paletteSize = 32
+
+// PaletteColourId references one of the possible 32 palette colours.
+type PaletteColourId uint8
+
 // Palette defines two palettes, each with 16 colours.
 type Palette struct {
 	// TODO: a single slice or two separate? If single, maybe change Palette from a struct to a slice?
 	// palette1 [16]Colour // background palette
 	// palette2 [16]Colour // sprite and background palette
-	colours [32]Colour
+	colours [paletteSize]Colour
 }
 
-// PaletteId used to identify a palette; background or sprite.
-type PaletteId uint8
+// SetColourAt sets the palette colour at the given index position.
+func (p *Palette) SetColourAt(pos int, col Colour) error {
+	if pos >= paletteSize {
+		return fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
+	}
+	p.colours[pos] = col
+	return nil
+}
 
-const (
-	PaletteBackground PaletteId = iota + 1
-	PaletteSprite
-)
-
-// PaletteColourId references one of the possible 32 palette colours.
-type PaletteColourId uint8
+// ColourAt returns the colour stored at the given index position.
+func (p *Palette) ColourAt(pos int) (Colour, error) {
+	if pos >= paletteSize {
+		return 0, fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
+	}
+	return p.colours[pos], nil
+}
