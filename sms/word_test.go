@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/mrcook/smstilemap/sms/orientation"
+
 	"github.com/mrcook/smstilemap/sms"
 )
 
@@ -33,6 +35,59 @@ func TestWord_ToUint(t *testing.T) {
 
 		if result != 0 {
 			t.Errorf("expected tile number to default to zero, got %016b", result)
+		}
+	})
+}
+
+func TestWord_SetFlippedStateFromOrientation(t *testing.T) {
+	t.Run("when flipped vertically", func(t *testing.T) {
+		word := sms.Word{
+			HorizontalFlip: true, // to make sure this gets reset
+		}
+		word.SetFlippedStateFromOrientation(orientation.FlippedV)
+		if !word.VerticalFlip {
+			t.Fatal("expected vertical flip to be set")
+		}
+		if word.HorizontalFlip {
+			t.Fatal("expected horizontal flip to be reset")
+		}
+	})
+
+	t.Run("when flipped horizontally", func(t *testing.T) {
+		word := sms.Word{
+			VerticalFlip: true, // to make sure this gets reset
+		}
+		word.SetFlippedStateFromOrientation(orientation.FlippedH)
+		if !word.HorizontalFlip {
+			t.Fatal("expected horizontal flip to be set")
+		}
+		if word.VerticalFlip {
+			t.Fatal("expected vertical flip to be reset")
+		}
+	})
+
+	t.Run("when flipped vertically and horizontally", func(t *testing.T) {
+		word := sms.Word{}
+		word.SetFlippedStateFromOrientation(orientation.FlippedVH)
+		if !word.VerticalFlip {
+			t.Fatal("expected vertical flip to be set")
+		}
+		if !word.HorizontalFlip {
+			t.Fatal("expected horizontal flip to be set")
+		}
+	})
+
+	t.Run("when normal orientation (not flipped)", func(t *testing.T) {
+		word := sms.Word{
+			VerticalFlip:   true, // to make sure this gets reset
+			HorizontalFlip: true, // to make sure this gets reset
+		}
+		word.SetFlippedStateFromOrientation(orientation.Normal)
+		if word.VerticalFlip {
+			t.Fatal("expected vertical flip to be reset")
+		}
+		if word.HorizontalFlip {
+			t.Fatal("expected horizontal flip to be reset")
 		}
 	})
 }
