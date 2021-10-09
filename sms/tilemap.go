@@ -6,11 +6,11 @@ package sms
 // scroll smoothly, with updates to the tilemap happening in the off-screen
 // parts. Each entry in the tilemap represents one tile on the virtual screen.
 //
-// The VRAM can hold 448 unique tiles (14kb) - under normal usage.
+// The VideoRam can hold 448 unique tiles (14kb) - under normal usage.
 //
 // It would take 768 unique tiles to fill the viewport area, or 896 to
 // completely fill the tilemap, therefore the tilemap has to be built using a
-// repetition of available VRAM tiles.
+// repetition of available VideoRam tiles.
 //
 // Data format:
 //
@@ -19,7 +19,7 @@ package sms
 // Bit  |15 14 13|    12    |    11   |      10       |        9        | 8 7 6 5 4 3 2 1 0
 // Data | Unused | Priority | Palette | Vertical flip | Horizontal flip |    Tile number
 //
-// The data is stored in VRAM (usually at location $3800), in little-endian
+// The data is stored in VideoRam (usually at location $3800), in little-endian
 // format, and takes up 1792 bytes (32x28x2 bytes).
 //
 // Flags:

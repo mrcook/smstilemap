@@ -10,15 +10,13 @@ package sms
 // the first four bytes of data, split by "bitplane". The process is repeated
 // for consecutive rows of the tile, producing 32 bytes total.
 //
-// In the most typical VRAM layout, 14KB of the total 16KB is available for
+// In the most typical VideoRam layout, 14KB of the total 16KB is available for
 // tiles; that is enough space for 448 tiles. (With some tricks you can get
 // space for a few more.)
 
 // Tile is a type holding the colour data for an 8x8 pixel tile
 type Tile struct {
 	pixels [64]PaletteId // TODO: or make it an [8][8]PaletteId slice?
-
-	palette *Palette // TODO: store here are just pass references in the funcs?
 }
 
 // ToPlanarData converts a tile to an SMS planar data slice.

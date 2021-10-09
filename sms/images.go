@@ -12,6 +12,17 @@ import (
 	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
+// FromImage converts the given image into SMS image data.
+func (s *SMS) FromImage(img image.Image) error {
+	return s.readImageOntoSMS(img, tileSize)
+}
+
+// TilemapToImage converts the tiled data to a new NRGBA image, with all tiles mapped
+// back to their original positions.
+func (s *SMS) TilemapToImage() (image.Image, error) {
+	return s.convertScreenToImage()
+}
+
 func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
 	// validate image is suitable for the SMS
 	if img == nil {
@@ -33,8 +44,11 @@ func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
 		if tile, err := s.tiledImg.GetTile(i); err != nil {
 			return err
 		} else {
-			s.videoRAM.addTile(i)
-			s.addTilemapEntries(i, tile)
+			tileId, err := s.AddTile(&Tile{}) // TODO: convert to Tile
+			if err != nil {
+				return fmt.Errorf("out of tile space")
+			}
+			s.addTilemapEntries(tileId, tile)
 		}
 	}
 
@@ -43,7 +57,7 @@ func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
 
 func (s *SMS) addTilemapEntries(tileID int, tile *tiler.Tile) {
 	// add the normal orientation tile
-	s.videoRAM.addTilemapEntry(tileID, tile.Row(), tile.Col(), tile.Orientation())
+	s.AddTilemapEntry(tileID, tile.Row(), tile.Col(), tile.Orientation())
 
 	// add any duplicate (flipped) tiles
 	for i := 0; i < tile.DuplicateCount(); i++ {
@@ -51,7 +65,7 @@ func (s *SMS) addTilemapEntries(tileID int, tile *tiler.Tile) {
 		if err != nil {
 			break // TODO: break?
 		}
-		s.videoRAM.addTilemapEntry(tileID, inf.Row(), inf.Col(), inf.Orientation())
+		s.AddTilemapEntry(tileID, inf.Row(), inf.Col(), inf.Orientation())
 	}
 }
 
