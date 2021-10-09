@@ -27,5 +27,13 @@ type Palette struct {
 	colours [32]Colour
 }
 
-// PaletteId references one of the possible 32 palette colours.
+// PaletteId used to identify a palette; background or sprite.
 type PaletteId uint8
+
+const (
+	PaletteBackground PaletteId = iota + 1
+	PaletteSprite
+)
+
+// PaletteColourId references one of the possible 32 palette colours.
+type PaletteColourId uint8

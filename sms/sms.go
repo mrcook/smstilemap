@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	tileSize        = 8   // SMS tiles are 8x8 pixels
 	maxTileCount    = 448 // maximum number of tiles the VDP can store
 	maxColourCount  = 64  // maximum colours the SMS supports
 	maxScreenWidth  = 256 // screen width in pixels

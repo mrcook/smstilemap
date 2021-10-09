@@ -1,5 +1,7 @@
 package sms
 
+import "fmt"
+
 // All graphics on the Master System are built up from 8×8 pixel tiles.
 // Each pixel is a palette index from 0 to 15, i.e. 4 bits.
 //
@@ -14,9 +16,29 @@ package sms
 // tiles; that is enough space for 448 tiles. (With some tricks you can get
 // space for a few more.)
 
+// SMS tiles are 8x8 pixels
+const tileSize = 8
+
 // Tile is a type holding the colour data for an 8x8 pixel tile
 type Tile struct {
-	pixels [64]PaletteId // TODO: or make it an [8][8]PaletteId slice?
+	pixels [tileSize][tileSize]PaletteColourId
+}
+
+// SetPixelAt sets a pixel in the tile at row/col with an ID from the colour palette.
+func (t *Tile) SetPixelAt(row, col int, colour PaletteColourId) error {
+	if row >= tileSize || col >= tileSize {
+		return fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
+	}
+	t.pixels[row][col] = colour
+	return nil
+}
+
+// PixelAt gets the palette colour from the tile at row/col.
+func (t *Tile) PixelAt(row, col int) (PaletteColourId, error) {
+	if row >= tileSize || col >= tileSize {
+		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d, %d), tile size is %d", row, col, tileSize)
+	}
+	return t.pixels[row][col], nil
 }
 
 // ToPlanarData converts a tile to an SMS planar data slice.
