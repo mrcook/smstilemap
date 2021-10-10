@@ -1,8 +1,9 @@
 // Package tiler converts a standard image.Image to a tiled representation.
 // Tiles are read as 8x8 pixel images starting a the top-left of the image (0,0).
 //
-// Currently this package is marked as 'internal', however, this may change in
-// the future once its API has been better defined.
+// This package is currently marked as 'internal' as it has very rough and
+// untested code. Once this has been improved, and its API has been better
+// defined, it may be moved to a public package.
 package tiler
 
 import (

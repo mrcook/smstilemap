@@ -6,8 +6,6 @@ import (
 	"image/png"
 	"log"
 	"os"
-
-	"github.com/mrcook/smstilemap/sms"
 )
 
 func main() {
@@ -19,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	vdp := sms.SMS{}
+	vdp := TiledImage{}
 
 	// convert PNG image to a tiled representation
 	if err := vdp.FromImage(pngImage); err != nil {

@@ -8,8 +8,6 @@ package sms
 
 import (
 	"fmt"
-
-	"github.com/mrcook/smstilemap/sms/internal/tiler"
 )
 
 const (
@@ -38,8 +36,6 @@ type SMS struct {
 	// additional values representing the X/Y coordinates (x,y coords, tile ID).
 	// NOTE: probably not needed in this library.
 	sat [256]uint8
-
-	tiledImg *tiler.Tiled // TODO: should not import tiler
 }
 
 // AddTile adds a tile at the next available slot, returning its index position.
