@@ -28,10 +28,12 @@ type PaletteId uint8
 
 // Palette defines two palettes, each with 16 colours.
 type Palette struct {
-	// TODO: a single slice or two separate? If single, maybe change Palette from a struct to a slice?
-	// palette1 [16]Colour // background palette
-	// palette2 [16]Colour // sprite and background palette
-	colours [paletteSize]Colour
+	colours [paletteSize]entry
+}
+
+type entry struct {
+	colour  Colour
+	enabled bool // required as colours are initialised to black
 }
 
 // ColourAt returns the colour stored at the given index position.
@@ -39,14 +41,38 @@ func (p *Palette) ColourAt(pos PaletteId) (Colour, error) {
 	if pos >= paletteSize {
 		return 0, fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
 	}
-	return p.colours[pos], nil
+	if !p.colours[pos].enabled {
+		return 0, fmt.Errorf("uninitialised colour")
+	}
+	return p.colours[pos].colour, nil
 }
 
 // SetColourAt sets the palette colour at the given index position.
-func (p *Palette) SetColourAt(pos PaletteId, col Colour) error {
+func (p *Palette) SetColourAt(pos PaletteId, colour Colour) error {
 	if pos >= paletteSize {
 		return fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
 	}
-	p.colours[pos] = col
+	p.colours[pos].colour = colour
+	p.colours[pos].enabled = true
 	return nil
+}
+
+// AddColour in the first available slot and return its index position.
+// If a matching colour is already present, its position is returned.
+func (p *Palette) AddColour(colour Colour) (int, error) {
+	for i, _ := range p.colours {
+		if p.colours[i].enabled && p.colours[i].colour.Equal(colour) {
+			return i, nil
+		}
+	}
+
+	for i, _ := range p.colours {
+		if !p.colours[i].enabled {
+			p.colours[i].colour = colour
+			p.colours[i].enabled = true
+			return i, nil
+		}
+	}
+
+	return 0, fmt.Errorf("palette full")
 }

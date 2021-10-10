@@ -66,3 +66,7 @@ func (s *SMS) AddTilemapEntryAt(row, col int, word Word) error {
 func (s *SMS) TilemapEntryAt(row, col int) (*Word, error) {
 	return s.nameTable.Get(row, col)
 }
+
+func (s *SMS) AddPaletteColour(colour Colour) (int, error) {
+	return s.palette.AddColour(colour)
+}

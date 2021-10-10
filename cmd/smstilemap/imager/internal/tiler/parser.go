@@ -8,8 +8,8 @@ import (
 
 // imageTile holds an 8x8 pixel tile from the original image
 type imageTile struct {
-	posX, posY int                    // tile location in rows, cols.
-	palette    map[string]color.Color // using the HEX colour value as the key (e.g. "#FF0000")
+	posX, posY int     // tile location in rows, cols.
+	palette    Palette // using the HEX colour value as the key (e.g. "#FF0000")
 	image      *image.NRGBA
 }
 

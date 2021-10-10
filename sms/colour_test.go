@@ -97,3 +97,22 @@ func TestColour_FromNearestMatchRGB(t *testing.T) {
 		})
 	}
 }
+
+func TestColour_Equal(t *testing.T) {
+	baseColour := 0b00101101
+	colour := sms.Colour(baseColour)
+
+	t.Run("returns true when the colours match", func(t *testing.T) {
+		testColour := sms.Colour(baseColour)
+		if !colour.Equal(testColour) {
+			t.Errorf("expected the colours to match")
+		}
+	})
+
+	t.Run("returns false when do not match", func(t *testing.T) {
+		testColour := sms.Colour(0b00000001)
+		if colour.Equal(testColour) {
+			t.Errorf("expected 0b%08b to not match 0b%08b", testColour.SMS(), colour.SMS())
+		}
+	})
+}

@@ -14,6 +14,8 @@ type Tile struct {
 	tileSize int // normally 8x8 pixels
 	*info        // basic data; row, col, and orientation
 
+	palette Palette
+
 	// location/orientation data for all duplicate tiles located in the image,
 	// based on their RGBA colours; exact match, vertically and horizontally flipped
 	duplicates []info
@@ -21,19 +23,22 @@ type Tile struct {
 	orientations map[orientation.Orientation]image.Image // the tile image data in all its orientations
 }
 
-func New(row, col, tileSize int, tileImage image.Image) *Tile {
+type Palette map[string]color.Color
+
+func New(row, col, tileSize int, palette Palette, tileImage image.Image) *Tile {
 	t := Tile{
 		tileSize:     tileSize,
 		info:         &info{row: row, col: col, orientation: orientation.Normal},
 		orientations: make(map[orientation.Orientation]image.Image, 4),
+		palette:      palette,
 	}
 	t.orientations[orientation.Normal] = tileImage
 	return &t
 }
 
-// A new tile, with all its different flipped orientations generated
-func newWithOrientations(row, col, tileSize int, tileImage image.Image) *Tile {
-	t := New(row, col, tileSize, tileImage)
+// NewWithOrientations a new tile, with all its different flipped orientations generated
+func NewWithOrientations(row, col, tileSize int, palette Palette, tileImage image.Image) *Tile {
+	t := New(row, col, tileSize, palette, tileImage)
 	t.generateFlippedOrientations()
 	return t
 }
@@ -54,6 +59,13 @@ func (t *Tile) OrientationAt(y, x int, orientation orientation.Orientation) (col
 		return color.NRGBA{}, fmt.Errorf("invalid orientation: %016b", orientation)
 	}
 	return o.At(x, y), nil
+}
+
+func (t *Tile) Palette() (colours []color.Color) {
+	for _, c := range t.palette {
+		colours = append(colours, c)
+	}
+	return
 }
 
 // AddDuplicateInfo tile to the duplicates slice.

@@ -62,9 +62,17 @@ func tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
 	sega := sms.SMS{}
 
 	for i := 0; i < tiled.TileCount(); i++ {
-		// tile, _ := tiled.GetTile(i)
+		tile, _ := tiled.GetTile(i)
 
 		// add all colours from tile to SMS palette (if not already present)
+		for _, c := range tile.Palette() {
+			r, g, b, _ := c.RGBA()
+			colour := sms.FromNearestMatchRGB(uint8(r), uint8(g), uint8(b))
+			if _, err := sega.AddPaletteColour(colour); err != nil {
+				return nil, err
+			}
+		}
+
 		// convert to an SMS tile, matching colours to SMS palette colours
 		// add SMS tile to tiles list
 		// update tilemap with the tile location

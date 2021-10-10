@@ -25,10 +25,12 @@ func FromNearestMatchRGB(r, g, b uint8) Colour {
 	return FromRGB(matchToNearestSmsColour(r), matchToNearestSmsColour(g), matchToNearestSmsColour(b))
 }
 
+// SMS returns the SMS `byte` for the colour.
 func (c Colour) SMS() uint8 {
 	return uint8(c)
 }
 
+// RGB returns the RGB values for the colour.
 func (c Colour) RGB() (r, g, b uint8) {
 	if col, ok := smsColours[c]; ok {
 		return col.r, col.g, col.b
@@ -38,11 +40,17 @@ func (c Colour) RGB() (r, g, b uint8) {
 
 const htmlBlack = "#000000"
 
+// HTML returns a HTML compatible hex value for the colour.
 func (c Colour) HTML() string {
 	if col, ok := smsColours[c]; ok {
 		return col.html
 	}
 	return htmlBlack
+}
+
+// Equal compares the given colour and returns true if it matches.
+func (c Colour) Equal(colour Colour) bool {
+	return c == colour
 }
 
 // Converts an 8-bit colour (e.g. R from RGB) to its nearest SMS equivalent.

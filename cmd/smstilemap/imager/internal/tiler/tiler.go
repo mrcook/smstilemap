@@ -20,8 +20,8 @@ type Tiled struct {
 	rows     int // image row count (in 8x8 tiles)
 	cols     int // image column count (in 8x8 tiles)
 
-	tiles   []Tile                 // a set of unique tiles making up the image
-	palette map[string]color.Color // map of unique colours found in the image
+	tiles   []Tile  // a set of unique tiles making up the image
+	palette Palette // map of unique colours found in the image
 }
 
 // FromImage returns a new tile set from the given image data.
@@ -93,12 +93,12 @@ func (b *Tiled) addTile(tile *imageTile) {
 
 	// if not duplicate found, add as a new tile
 	b.addTileColoursToPalette(tile)
-	b.tiles = append(b.tiles, *newWithOrientations(tile.posX, tile.posY, b.tileSize, tile.image))
+	b.tiles = append(b.tiles, *NewWithOrientations(tile.posX, tile.posY, b.tileSize, tile.palette, tile.image))
 }
 
 // if a tile is a duplicate, add it to the duplicates list
 func (b *Tiled) addIfDuplicate(tileID int, tile *imageTile) bool {
-	t := New(tile.posX, tile.posY, b.tileSize, tile.image)
+	t := New(tile.posX, tile.posY, b.tileSize, tile.palette, tile.image)
 	if orientation, dupe := b.tiles[tileID].IsDuplicate(t); dupe {
 		b.tiles[tileID].AddDuplicateInfo(tile.posX, tile.posY, orientation)
 		return true
