@@ -34,6 +34,14 @@ type Palette struct {
 	colours [paletteSize]Colour
 }
 
+// ColourAt returns the colour stored at the given index position.
+func (p *Palette) ColourAt(pos PaletteId) (Colour, error) {
+	if pos >= paletteSize {
+		return 0, fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
+	}
+	return p.colours[pos], nil
+}
+
 // SetColourAt sets the palette colour at the given index position.
 func (p *Palette) SetColourAt(pos PaletteId, col Colour) error {
 	if pos >= paletteSize {
@@ -41,12 +49,4 @@ func (p *Palette) SetColourAt(pos PaletteId, col Colour) error {
 	}
 	p.colours[pos] = col
 	return nil
-}
-
-// ColourAt returns the colour stored at the given index position.
-func (p *Palette) ColourAt(pos PaletteId) (Colour, error) {
-	if pos >= paletteSize {
-		return 0, fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
-	}
-	return p.colours[pos], nil
 }

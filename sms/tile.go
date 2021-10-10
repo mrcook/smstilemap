@@ -26,6 +26,14 @@ type Tile struct {
 	pixels [tileSize][tileSize]PaletteId
 }
 
+// PixelAt gets the palette colour from the tile at row/col.
+func (t *Tile) PixelAt(row, col int) (PaletteId, error) {
+	if row >= tileSize || col >= tileSize {
+		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
+	}
+	return t.pixels[row][col], nil
+}
+
 // SetPixelAt sets a pixel in the tile at row/col with an ID from the colour palette.
 func (t *Tile) SetPixelAt(row, col int, pid PaletteId) error {
 	if row >= tileSize || col >= tileSize {
@@ -33,14 +41,6 @@ func (t *Tile) SetPixelAt(row, col int, pid PaletteId) error {
 	}
 	t.pixels[row][col] = pid
 	return nil
-}
-
-// PixelAt gets the palette colour from the tile at row/col.
-func (t *Tile) PixelAt(row, col int) (PaletteId, error) {
-	if row >= tileSize || col >= tileSize {
-		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
-	}
-	return t.pixels[row][col], nil
 }
 
 // ToPlanarData converts a tile to an SMS planar data slice.

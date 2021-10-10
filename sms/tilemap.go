@@ -1,5 +1,7 @@
 package sms
 
+import "fmt"
+
 // Tilemap represents the background graphics on the Master System screen,
 // which is 256x224 pixels (32x28 8x8 tiles). This "virtual screen" is slightly
 // larger than the viewport (256x224 px/32x24 tiles), allowing the viewport to
@@ -35,10 +37,30 @@ package sms
 // will have a "blank" background. Careful use of tile priority can make the
 // graphics seem more multi-layered.
 // https://www.smspower.org/maxim/HowToProgram/Tilemap
+
+const (
+	tilemapRows = 28
+	tilemapCols = 32
+)
+
+// Tilemap represents the background graphics on the Master System screen,
 type Tilemap struct {
-	table [28][32]Word
+	table [tilemapRows][tilemapCols]Word
 }
 
-func (t *Tilemap) Set(row, col int, word Word) {
+func (t *Tilemap) Get(row, col int) (*Word, error) {
+	if row >= tilemapRows || col >= tilemapCols {
+		return nil, fmt.Errorf("get tilemap out of bounds indexing, max is (%d,%d), requested (%d,%d)", tilemapRows-1, tilemapCols-1, row, col)
+	}
+
+	return &t.table[row][col], nil
+}
+
+func (t *Tilemap) Set(row, col int, word Word) error {
+	if row >= tilemapRows || col >= tilemapCols {
+		return fmt.Errorf("set tilemap out of bounds indexing, max is (%d,%d), requested (%d,%d)", tilemapRows-1, tilemapCols-1, row, col)
+	}
+
 	t.table[row][col] = word
+	return nil
 }
