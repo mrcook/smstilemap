@@ -17,15 +17,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	vdp := TiledImage{}
+	vdp := tiledImage{}
 
 	// convert PNG image to a tiled representation
-	if err := vdp.FromImage(pngImage); err != nil {
+	if err := vdp.fromImage(pngImage); err != nil {
 		log.Fatal(err)
 	}
 
 	// convert the tiles back to a normal image
-	dstImage, err := vdp.TilemapToImage()
+	dstImage, err := vdp.tilemapToImage()
 	if err != nil {
 		log.Fatal(err)
 	}

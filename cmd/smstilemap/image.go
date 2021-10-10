@@ -5,52 +5,53 @@ import (
 	"image"
 
 	"github.com/mrcook/smstilemap/cmd/smstilemap/internal/tiler"
+	"github.com/mrcook/smstilemap/sms"
 	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 const (
-	tileSize        = 8
-	maxColourCount  = 64  // maximum colours the SMS supports
-	maxScreenWidth  = 256 // screen width in pixels
-	maxScreenHeight = 224 // screen height in pixels, only 192px are visible on the SMS
+	tileSize = 8
 )
 
-type TiledImage struct {
-	tiledImg *tiler.Tiled
+type tiledImage struct {
+	tiled *tiler.Tiled
 }
 
-// FromImage converts the given image into SMS image data.
-func (t *TiledImage) FromImage(img image.Image) error {
-	return t.readImageOntoSMS(img, tileSize)
+// fromImage converts the given image into SMS image data.
+func (t *tiledImage) fromImage(img image.Image) error {
+	if err := t.processImage(img, tileSize); err != nil {
+		return err
+	}
+	return nil
 }
 
-// TilemapToImage converts the tiled data to a new NRGBA image, with all tiles mapped
+// tilemapToImage converts the tiled data to a new NRGBA image, with all tiles mapped
 // back to their original positions.
-func (t *TiledImage) TilemapToImage() (image.Image, error) {
+func (t *tiledImage) tilemapToImage() (image.Image, error) {
 	return t.convertScreenToImage()
 }
 
-func (t *TiledImage) readImageOntoSMS(img image.Image, tileSize int) error {
+func (t *tiledImage) processImage(img image.Image, tileSize int) error {
 	// validate image is suitable for the SMS
 	if img == nil {
 		return fmt.Errorf("source image is nil")
-	} else if img.Bounds().Dx() > maxScreenWidth || img.Bounds().Dy() > maxScreenHeight {
-		return fmt.Errorf("image size too big for SMS screen (%d x %d)", maxScreenWidth, maxScreenHeight)
+	} else if img.Bounds().Dx() > sms.MaxScreenWidth || img.Bounds().Dy() > sms.MaxScreenHeight {
+		return fmt.Errorf("image size too big for SMS screen (%d x %d)", sms.MaxScreenWidth, sms.MaxScreenHeight)
 	}
 
 	// convert incoming image to a tiled representation
-	t.tiledImg = tiler.FromImage(img, tileSize)
+	t.tiled = tiler.FromImage(img, tileSize)
 
 	// now make sure there are not too many colours for the SMS
-	if t.tiledImg.ColourCount() > maxColourCount {
-		return fmt.Errorf("too many unique colours for SMS (max: %d)", maxColourCount)
+	if t.tiled.ColourCount() > sms.MaxColourCount {
+		return fmt.Errorf("too many unique colours for SMS (max: %d)", sms.MaxColourCount)
 	}
 
 	return nil
 }
 
-func (t *TiledImage) convertScreenToImage() (image.Image, error) {
-	bg := t.tiledImg
+func (t *tiledImage) convertScreenToImage() (image.Image, error) {
+	bg := t.tiled
 
 	if bg == nil {
 		return nil, fmt.Errorf("no image data available to convert")
@@ -83,7 +84,7 @@ func (t *TiledImage) convertScreenToImage() (image.Image, error) {
 	return img, nil
 }
 
-func (t *TiledImage) drawTileAt(tile *tiler.Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation orientation.Orientation) error {
+func (t *tiledImage) drawTileAt(tile *tiler.Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation orientation.Orientation) error {
 	for y := 0; y < tileSize; y++ {
 		for x := 0; x < tileSize; x++ {
 			colour, err := tile.OrientationAt(y, x, orientation)

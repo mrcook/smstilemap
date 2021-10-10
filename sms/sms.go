@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	maxTileCount    = 448 // maximum number of tiles the VDP can store
-	maxColourCount  = 64  // maximum colours the SMS supports
-	maxScreenWidth  = 256 // screen width in pixels
-	maxScreenHeight = 224 // screen height in pixels, only 192px are visible on the SMS
+	MaxScreenWidth  = 256 // screen width in pixels
+	MaxScreenHeight = 224 // screen height in pixels, only 192px are visible on the SMS
+	MaxColourCount  = 64  // maximum colours the SMS supports
+
+	maxTileCount = 448 // maximum number of tiles the VDP can store
 )
 
 type SMS struct {
