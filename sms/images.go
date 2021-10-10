@@ -57,7 +57,7 @@ func (s *SMS) readImageOntoSMS(img image.Image, tileSize int) error {
 
 func (s *SMS) addTilemapEntries(tileID int, tile *tiler.Tile) {
 	// add the normal orientation tile
-	s.AddTilemapEntry(tileID, tile.Row(), tile.Col(), tile.Orientation())
+	_ = s.AddTilemapEntryAt(tile.Row(), tile.Col(), s.newTilemapEntry(tileID, tile.Orientation()))
 
 	// add any duplicate (flipped) tiles
 	for i := 0; i < tile.DuplicateCount(); i++ {
@@ -65,8 +65,18 @@ func (s *SMS) addTilemapEntries(tileID int, tile *tiler.Tile) {
 		if err != nil {
 			break // TODO: break?
 		}
-		s.AddTilemapEntry(tileID, inf.Row(), inf.Col(), inf.Orientation())
+		_ = s.AddTilemapEntryAt(inf.Row(), inf.Col(), s.newTilemapEntry(tileID, inf.Orientation()))
 	}
+}
+
+func (s *SMS) newTilemapEntry(tileID int, or orientation.Orientation) Word {
+	word := Word{
+		Priority:      false, // set as a background tile
+		PaletteSelect: false, // use the background tile palette
+		TileNumber:    uint16(tileID),
+	}
+	word.SetFlippedStateFromOrientation(or)
+	return word
 }
 
 func (s *SMS) convertScreenToImage() (image.Image, error) {

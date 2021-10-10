@@ -9,8 +9,6 @@ package sms
 import (
 	"fmt"
 
-	"github.com/mrcook/smstilemap/sms/orientation"
-
 	"github.com/mrcook/smstilemap/sms/internal/tiler"
 )
 
@@ -62,12 +60,12 @@ func (s *SMS) TileAt(id int) (*Tile, error) {
 	return s.characters[id], nil
 }
 
-func (s *SMS) AddTilemapEntry(tileID, row, col int, or orientation.Orientation) {
-	word := Word{
-		Priority:      false, // set as a background tile
-		PaletteSelect: false, // use the background tile palette
-		TileNumber:    uint16(tileID),
-	}
-	word.SetFlippedStateFromOrientation(or)
-	s.nameTable.Set(row, col, word)
+// AddTilemapEntryAt adds the tile info to the tilemap at the requested location.
+func (s *SMS) AddTilemapEntryAt(row, col int, word Word) error {
+	return s.nameTable.Set(row, col, word)
+}
+
+// TilemapEntryAt returns the tile info from the tilemap for the requested location.
+func (s *SMS) TilemapEntryAt(row, col int) (*Word, error) {
+	return s.nameTable.Get(row, col)
 }

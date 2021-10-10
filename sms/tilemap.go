@@ -48,6 +48,7 @@ type Tilemap struct {
 	table [tilemapRows][tilemapCols]Word
 }
 
+// Get returns the tile info from the requested location.
 func (t *Tilemap) Get(row, col int) (*Word, error) {
 	if row >= tilemapRows || col >= tilemapCols {
 		return nil, fmt.Errorf("get tilemap out of bounds indexing, max is (%d,%d), requested (%d,%d)", tilemapRows-1, tilemapCols-1, row, col)
@@ -56,6 +57,7 @@ func (t *Tilemap) Get(row, col int) (*Word, error) {
 	return &t.table[row][col], nil
 }
 
+// Set adds the tile info at the requested location.
 func (t *Tilemap) Set(row, col int, word Word) error {
 	if row >= tilemapRows || col >= tilemapCols {
 		return fmt.Errorf("set tilemap out of bounds indexing, max is (%d,%d), requested (%d,%d)", tilemapRows-1, tilemapCols-1, row, col)
