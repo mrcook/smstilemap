@@ -40,11 +40,11 @@ type SMS struct {
 }
 
 // AddTile adds a tile at the next available slot, returning its index position.
-func (s *SMS) AddTile(t *Tile) (int, error) {
+func (s *SMS) AddTile(t *Tile) (uint16, error) {
 	for i, chr := range s.characters {
 		if chr == nil {
 			s.characters[i] = t
-			return i, nil
+			return uint16(i), nil
 		}
 	}
 	return 0, fmt.Errorf("no space available")
@@ -67,6 +67,10 @@ func (s *SMS) TilemapEntryAt(row, col int) (*Word, error) {
 	return s.nameTable.Get(row, col)
 }
 
-func (s *SMS) AddPaletteColour(colour Colour) (int, error) {
+func (s *SMS) AddPaletteColour(colour Colour) (PaletteId, error) {
 	return s.palette.AddColour(colour)
+}
+
+func (s *SMS) PaletteIdForColour(colour Colour) (PaletteId, error) {
+	return s.palette.PaletteIdFor(colour)
 }

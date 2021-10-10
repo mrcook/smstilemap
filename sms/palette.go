@@ -59,20 +59,28 @@ func (p *Palette) SetColourAt(pos PaletteId, colour Colour) error {
 
 // AddColour in the first available slot and return its index position.
 // If a matching colour is already present, its position is returned.
-func (p *Palette) AddColour(colour Colour) (int, error) {
-	for i, _ := range p.colours {
-		if p.colours[i].enabled && p.colours[i].colour.Equal(colour) {
-			return i, nil
-		}
+func (p *Palette) AddColour(colour Colour) (PaletteId, error) {
+	if pos, err := p.PaletteIdFor(colour); err == nil {
+		return pos, nil
 	}
 
 	for i, _ := range p.colours {
 		if !p.colours[i].enabled {
 			p.colours[i].colour = colour
 			p.colours[i].enabled = true
-			return i, nil
+			return PaletteId(i), nil
 		}
 	}
 
 	return 0, fmt.Errorf("palette full")
+}
+
+// PaletteIdFor returns the position ID for a matching colour.
+func (p *Palette) PaletteIdFor(colour Colour) (PaletteId, error) {
+	for i, _ := range p.colours {
+		if p.colours[i].enabled && p.colours[i].colour.Equal(colour) {
+			return PaletteId(i), nil
+		}
+	}
+	return 0, fmt.Errorf("colour not found")
 }

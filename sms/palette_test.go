@@ -138,3 +138,31 @@ func TestPalette_AddColour(t *testing.T) {
 		}
 	})
 }
+
+func TestPalette_PaletteIdFor(t *testing.T) {
+	t.Run("return position of matching colour", func(t *testing.T) {
+		pal := sms.Palette{}
+		colour := sms.Colour(0b00111111)
+		_ = pal.SetColourAt(2, colour)
+
+		pos, err := pal.PaletteIdFor(colour)
+		if err != nil {
+			t.Fatalf("unexpected error, got '%s'", err)
+		}
+		if pos != 2 {
+			t.Errorf("expected existing position, got %d", pos)
+		}
+	})
+
+	t.Run("when no colour match found", func(t *testing.T) {
+		pal := sms.Palette{}
+		_ = pal.SetColourAt(2, sms.Colour(0b00111111))
+
+		_, err := pal.PaletteIdFor(sms.Colour(0b00000011))
+		if err == nil {
+			t.Fatal("expected an error")
+		} else if err.Error() != "colour not found" {
+			t.Errorf("unexpected error message, got '%s'", err)
+		}
+	})
+}

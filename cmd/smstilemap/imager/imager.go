@@ -73,12 +73,76 @@ func tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
 			}
 		}
 
-		// convert to an SMS tile, matching colours to SMS palette colours
-		// add SMS tile to tiles list
-		// update tilemap with the tile location
+		smsTile, err := convertToSmsTile(&sega, tile)
+		if err != nil {
+			return nil, err
+		}
+		tid, err := sega.AddTile(smsTile)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := updateTilemap(tid, &sega, tile); err != nil {
+			return nil, err
+		}
 	}
 
 	return &sega, nil
+}
+
+// convert to an SMS tile, matching colours to SMS palette colours
+func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
+	smsTile := sms.Tile{}
+
+	for row := 0; row < tile.RowInPixels(); row++ {
+		for col := 0; col < tile.ColInPixels(); col++ {
+			// get the colour for the current pixel
+			c, err := tile.OrientationAt(row, col, tile.Orientation())
+			if err != nil {
+				return nil, err
+			}
+			r, g, b, _ := c.RGBA()
+			colour := sms.FromNearestMatchRGB(uint8(r), uint8(g), uint8(b))
+
+			// find the palette ID for the colour
+			pid, err := sega.PaletteIdForColour(colour)
+			if err != nil {
+				return nil, err
+			}
+
+			// sets the pixel colour using the palette ID
+			if err := smsTile.SetPixelAt(row, col, pid); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return &smsTile, nil
+}
+
+// update tilemap with the tile+duplicate locations
+func updateTilemap(tid uint16, sega *sms.SMS, tile *tiler.Tile) error {
+	word := sms.Word{TileNumber: tid}
+
+	// the tile
+	word.SetFlippedStateFromOrientation(tile.Orientation())
+	if err := sega.AddTilemapEntryAt(tile.Row(), tile.Col(), word); err != nil {
+		return err
+	}
+
+	// and its duplicates
+	for did := 0; did < tile.DuplicateCount(); did++ {
+		inf, err := tile.GetDuplicateInfo(did)
+		if err != nil {
+			return err
+		}
+
+		word.SetFlippedStateFromOrientation(inf.Orientation())
+		if err := sega.AddTilemapEntryAt(inf.Row(), inf.Col(), word); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func convertScreenToImage(bg *tiler.Tiled) (image.Image, error) {
