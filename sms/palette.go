@@ -58,7 +58,8 @@ func (p *Palette) SetColourAt(pos PaletteId, colour Colour) error {
 }
 
 // AddColour in the first available slot and return its index position.
-// If a matching colour is already present, its position is returned.
+// When the palette already contains the colour its position is returned,
+// or an error is the palette is full.
 func (p *Palette) AddColour(colour Colour) (PaletteId, error) {
 	if pos, err := p.PaletteIdFor(colour); err == nil {
 		return pos, nil
@@ -76,6 +77,7 @@ func (p *Palette) AddColour(colour Colour) (PaletteId, error) {
 }
 
 // PaletteIdFor returns the position ID for a matching colour.
+// If the colour is not found, an error is returned.
 func (p *Palette) PaletteIdFor(colour Colour) (PaletteId, error) {
 	for i, _ := range p.colours {
 		if p.colours[i].enabled && p.colours[i].colour.Equal(colour) {

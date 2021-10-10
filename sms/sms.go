@@ -14,14 +14,13 @@ const (
 	MaxScreenWidth  = 256 // screen width in pixels
 	MaxScreenHeight = 224 // screen height in pixels, only 192px are visible on the SMS
 	MaxColourCount  = 64  // maximum colours the SMS supports
-
-	maxTileCount = 448 // maximum number of tiles the VDP can store
+	MaxTileCount    = 448 // maximum number of tiles the VDP can store
 )
 
 type SMS struct {
 	// The Character generator (sprite/tile patterns) is 14 KB in size.
 	// Each tile occupies 32 bytes, allowing up to 448 unique tiles to be stored.
-	characters [maxTileCount]*Tile
+	characters [MaxTileCount]*Tile
 
 	// The Screen Map can hold the positions of the 896 tiles (768 visible) and
 	// is 1792 bytes in size. Each entry is 2-bytes wide and contains the address
@@ -39,6 +38,13 @@ type SMS struct {
 	sat [256]uint8
 }
 
+func (s *SMS) TileAt(id uint16) (*Tile, error) {
+	if int(id) >= len(s.characters) {
+		return nil, fmt.Errorf("invalid tile ID")
+	}
+	return s.characters[id], nil
+}
+
 // AddTile adds a tile at the next available slot, returning its index position.
 func (s *SMS) AddTile(t *Tile) (uint16, error) {
 	for i, chr := range s.characters {
@@ -50,11 +56,9 @@ func (s *SMS) AddTile(t *Tile) (uint16, error) {
 	return 0, fmt.Errorf("no space available")
 }
 
-func (s *SMS) TileAt(id int) (*Tile, error) {
-	if id > len(s.characters) {
-		return nil, fmt.Errorf("invalid tile ID")
-	}
-	return s.characters[id], nil
+// TilemapEntryAt returns the tile info from the tilemap for the requested location.
+func (s *SMS) TilemapEntryAt(row, col int) (*Word, error) {
+	return s.nameTable.Get(row, col)
 }
 
 // AddTilemapEntryAt adds the tile info to the tilemap at the requested location.
@@ -62,15 +66,15 @@ func (s *SMS) AddTilemapEntryAt(row, col int, word Word) error {
 	return s.nameTable.Set(row, col, word)
 }
 
-// TilemapEntryAt returns the tile info from the tilemap for the requested location.
-func (s *SMS) TilemapEntryAt(row, col int) (*Word, error) {
-	return s.nameTable.Get(row, col)
-}
-
-func (s *SMS) AddPaletteColour(colour Colour) (PaletteId, error) {
-	return s.palette.AddColour(colour)
-}
-
+// PaletteIdForColour returns the palette index position for the requested colour.
+// If the colour is not found, an error is returned.
 func (s *SMS) PaletteIdForColour(colour Colour) (PaletteId, error) {
 	return s.palette.PaletteIdFor(colour)
+}
+
+// AddPaletteColour in the first available palette slot and return its index position.
+// When the palette already contains the colour, its position is returned.
+// An error is returned when the palette is full.
+func (s *SMS) AddPaletteColour(colour Colour) (PaletteId, error) {
+	return s.palette.AddColour(colour)
 }
