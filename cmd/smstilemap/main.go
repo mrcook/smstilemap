@@ -6,6 +6,8 @@ import (
 	"image/png"
 	"log"
 	"os"
+
+	"github.com/mrcook/smstilemap/cmd/smstilemap/imager"
 )
 
 func main() {
@@ -17,15 +19,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	vdp := tiledImage{}
+	tiled := imager.Imager{}
 
 	// convert PNG image to a tiled representation
-	if err := vdp.fromImage(pngImage); err != nil {
+	if err := tiled.FromImage(pngImage); err != nil {
 		log.Fatal(err)
 	}
 
 	// convert the tiles back to a normal image
-	dstImage, err := vdp.tilemapToImage()
+	dstImage, err := tiled.TilemapToImage()
 	if err != nil {
 		log.Fatal(err)
 	}
