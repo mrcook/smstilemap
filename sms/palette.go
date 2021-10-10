@@ -23,8 +23,8 @@ import "fmt"
 
 const paletteSize = 32
 
-// PaletteColourId references one of the possible 32 palette colours.
-type PaletteColourId uint8
+// PaletteId references one of the possible 32 palette colours.
+type PaletteId uint8
 
 // Palette defines two palettes, each with 16 colours.
 type Palette struct {
@@ -35,7 +35,7 @@ type Palette struct {
 }
 
 // SetColourAt sets the palette colour at the given index position.
-func (p *Palette) SetColourAt(pos int, col Colour) error {
+func (p *Palette) SetColourAt(pos PaletteId, col Colour) error {
 	if pos >= paletteSize {
 		return fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
 	}
@@ -44,7 +44,7 @@ func (p *Palette) SetColourAt(pos int, col Colour) error {
 }
 
 // ColourAt returns the colour stored at the given index position.
-func (p *Palette) ColourAt(pos int) (Colour, error) {
+func (p *Palette) ColourAt(pos PaletteId) (Colour, error) {
 	if pos >= paletteSize {
 		return 0, fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
 	}

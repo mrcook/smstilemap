@@ -23,20 +23,20 @@ const (
 
 // Tile is a type holding the colour data for an 8x8 pixel tile
 type Tile struct {
-	pixels [tileSize][tileSize]PaletteColourId
+	pixels [tileSize][tileSize]PaletteId
 }
 
 // SetPixelAt sets a pixel in the tile at row/col with an ID from the colour palette.
-func (t *Tile) SetPixelAt(row, col int, colour PaletteColourId) error {
+func (t *Tile) SetPixelAt(row, col int, pid PaletteId) error {
 	if row >= tileSize || col >= tileSize {
 		return fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
 	}
-	t.pixels[row][col] = colour
+	t.pixels[row][col] = pid
 	return nil
 }
 
 // PixelAt gets the palette colour from the tile at row/col.
-func (t *Tile) PixelAt(row, col int) (PaletteColourId, error) {
+func (t *Tile) PixelAt(row, col int) (PaletteId, error) {
 	if row >= tileSize || col >= tileSize {
 		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
 	}

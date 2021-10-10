@@ -8,7 +8,7 @@ import (
 
 func TestTile_SetPixelAt(t *testing.T) {
 	tile := sms.Tile{}
-	colourId := sms.PaletteColourId(31)
+	colourId := sms.PaletteId(31)
 
 	t.Run("setting the pixel", func(t *testing.T) {
 		_ = tile.SetPixelAt(0, 0, colourId)
@@ -42,7 +42,7 @@ func TestTile_SetPixelAt(t *testing.T) {
 func TestTile_PixelAt(t *testing.T) {
 	tile := sms.Tile{}
 
-	colourId := sms.PaletteColourId(2)
+	colourId := sms.PaletteId(2)
 	_ = tile.SetPixelAt(7, 7, colourId)
 
 	t.Run("retrieving the pixel", func(t *testing.T) {
