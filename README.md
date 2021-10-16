@@ -17,16 +17,21 @@ a nearest match conversion will be attempted. This can have an undesirable
 effect, so it's recommend to follow the image generation guide below.
 
 
+## Usage
+
+* TODO
+
+
 ## Guide to generating Sega Master System compatible images
 
 Any graphics or sprite editor that can control the colour palette and export to
-a **lossless image format** such as PNG can be used.
+the PNG can be used.
 
 Master System specs:
 
 * 256x192 pixels screen size (viewport)
 * 64 predefined colours
-* palette: 16 colours for sprites or 32 for background tiles
+* 32 palette colours: 16 for background tiles and 16 for sprites or background tiles
 * tile size: 8x8 pixels
 * maximum of 448 unique tiles
 
@@ -44,8 +49,6 @@ tiles (vertical and horizontal) can help to achieve this maximum tile usage.
 
 * support SMS sprite sheet by using only palette #2
 * validate the source image before processing:
-  - width/height is not greater than 256x224 pixels
-  - x/y are divisible by 8 (pixels)
   - colours matches the 64 available on the SMS
   - colour palette does not exceed 32 colours, or 16 for sprite sheets
 
