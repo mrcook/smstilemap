@@ -1,4 +1,4 @@
-package orientation
+package sms
 
 // Orientation is a 16-bit number for use in the named table entry: ---pcvhnnnnnnnnn
 // This binary number contains only the Vertical and Horizontal bits flipped so
@@ -6,8 +6,8 @@ package orientation
 type Orientation uint16
 
 const (
-	Normal    Orientation = 0b0000000000000000
-	FlippedV  Orientation = 0b0000010000000000
-	FlippedH  Orientation = 0b0000001000000000
-	FlippedVH Orientation = 0b0000011000000000
+	OrientationNormal    Orientation = 0b0000000000000000
+	OrientationFlippedV  Orientation = 0b0000010000000000
+	OrientationFlippedH  Orientation = 0b0000001000000000
+	OrientationFlippedVH Orientation = 0b0000011000000000
 )

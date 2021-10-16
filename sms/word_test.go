@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mrcook/smstilemap/sms/orientation"
-
 	"github.com/mrcook/smstilemap/sms"
 )
 
@@ -44,7 +42,7 @@ func TestWord_SetFlippedStateFromOrientation(t *testing.T) {
 		word := sms.Word{
 			HorizontalFlip: true, // to make sure this gets reset
 		}
-		word.SetFlippedStateFromOrientation(orientation.FlippedV)
+		word.SetFlippedStateFromOrientation(sms.OrientationFlippedV)
 		if !word.VerticalFlip {
 			t.Fatal("expected vertical flip to be set")
 		}
@@ -57,7 +55,7 @@ func TestWord_SetFlippedStateFromOrientation(t *testing.T) {
 		word := sms.Word{
 			VerticalFlip: true, // to make sure this gets reset
 		}
-		word.SetFlippedStateFromOrientation(orientation.FlippedH)
+		word.SetFlippedStateFromOrientation(sms.OrientationFlippedH)
 		if !word.HorizontalFlip {
 			t.Fatal("expected horizontal flip to be set")
 		}
@@ -68,7 +66,7 @@ func TestWord_SetFlippedStateFromOrientation(t *testing.T) {
 
 	t.Run("when flipped vertically and horizontally", func(t *testing.T) {
 		word := sms.Word{}
-		word.SetFlippedStateFromOrientation(orientation.FlippedVH)
+		word.SetFlippedStateFromOrientation(sms.OrientationFlippedVH)
 		if !word.VerticalFlip {
 			t.Fatal("expected vertical flip to be set")
 		}
@@ -82,7 +80,7 @@ func TestWord_SetFlippedStateFromOrientation(t *testing.T) {
 			VerticalFlip:   true, // to make sure this gets reset
 			HorizontalFlip: true, // to make sure this gets reset
 		}
-		word.SetFlippedStateFromOrientation(orientation.Normal)
+		word.SetFlippedStateFromOrientation(sms.OrientationNormal)
 		if word.VerticalFlip {
 			t.Fatal("expected vertical flip to be reset")
 		}

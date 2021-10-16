@@ -1,7 +1,5 @@
 package sms
 
-import "github.com/mrcook/smstilemap/sms/orientation"
-
 type Word struct {
 	Priority       bool   // bit 12: tile is displayed in front of sprites when set
 	PaletteSelect  bool   // bit 11: use tile palette or sprite palette (when set)
@@ -32,15 +30,15 @@ func (w Word) ToUint() uint16 {
 	return value
 }
 
-func (w *Word) SetFlippedStateFromOrientation(or orientation.Orientation) {
+func (w *Word) SetFlippedStateFromOrientation(or Orientation) {
 	switch or {
-	case orientation.FlippedVH:
+	case OrientationFlippedVH:
 		w.VerticalFlip = true
 		w.HorizontalFlip = true
-	case orientation.FlippedV:
+	case OrientationFlippedV:
 		w.VerticalFlip = true
 		w.HorizontalFlip = false
-	case orientation.FlippedH:
+	case OrientationFlippedH:
 		w.VerticalFlip = false
 		w.HorizontalFlip = true
 	default:
