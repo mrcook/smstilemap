@@ -6,7 +6,6 @@ import (
 	"image/color"
 
 	"github.com/disintegration/imaging"
-	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 // Tile is an 8x8 pixel image tile.
@@ -20,7 +19,7 @@ type Tile struct {
 	// based on their RGBA colours; exact match, vertically and horizontally flipped
 	duplicates []info
 
-	orientations map[orientation.Orientation]image.Image // the tile image data in all its orientations
+	orientations map[Orientation]image.Image // the tile image data in all its orientations
 }
 
 type Palette map[string]color.Color
@@ -28,11 +27,11 @@ type Palette map[string]color.Color
 func New(row, col, tileSize int, palette Palette, tileImage image.Image) *Tile {
 	t := Tile{
 		tileSize:     tileSize,
-		info:         &info{row: row, col: col, orientation: orientation.Normal},
-		orientations: make(map[orientation.Orientation]image.Image, 4),
+		info:         &info{row: row, col: col, orientation: OrientationNormal},
+		orientations: make(map[Orientation]image.Image, 4),
 		palette:      palette,
 	}
-	t.orientations[orientation.Normal] = tileImage
+	t.orientations[OrientationNormal] = tileImage
 	return &t
 }
 
@@ -58,7 +57,7 @@ func (t *Tile) ColPosInPixels() int {
 	return t.col * t.tileSize
 }
 
-func (t *Tile) OrientationAt(y, x int, orientation orientation.Orientation) (color.Color, error) {
+func (t *Tile) OrientationAt(y, x int, orientation Orientation) (color.Color, error) {
 	o, ok := t.orientations[orientation]
 	if !ok {
 		return color.NRGBA{}, fmt.Errorf("invalid orientation: %016b", orientation)
@@ -74,7 +73,7 @@ func (t *Tile) Palette() (colours []color.Color) {
 }
 
 // AddDuplicateInfo tile to the duplicates slice.
-func (t *Tile) AddDuplicateInfo(row, col int, orientation orientation.Orientation) {
+func (t *Tile) AddDuplicateInfo(row, col int, orientation Orientation) {
 	inf := info{row: row, col: col, orientation: orientation}
 	t.duplicates = append(t.duplicates, inf)
 }
@@ -95,26 +94,26 @@ func (t *Tile) GetDuplicateInfo(id int) (*info, error) {
 // IsDuplicate tests the tile image for matching colours.
 // If no match is found, then the image is flipped vertically, horizontally,
 // and in both planes, and tested again after each.
-func (t *Tile) IsDuplicate(tile *Tile) (orientation.Orientation, bool) {
+func (t *Tile) IsDuplicate(tile *Tile) (Orientation, bool) {
 	// TODO: use goroutines?
-	if t.matchingColours(tile, orientation.Normal) {
-		return orientation.Normal, true
-	} else if t.matchingColours(tile, orientation.FlippedH) {
-		return orientation.FlippedH, true
-	} else if t.matchingColours(tile, orientation.FlippedV) {
-		return orientation.FlippedV, true
-	} else if t.matchingColours(tile, orientation.FlippedVH) {
-		return orientation.FlippedVH, true
+	if t.matchingColours(tile, OrientationNormal) {
+		return OrientationNormal, true
+	} else if t.matchingColours(tile, OrientationFlippedH) {
+		return OrientationFlippedH, true
+	} else if t.matchingColours(tile, OrientationFlippedV) {
+		return OrientationFlippedV, true
+	} else if t.matchingColours(tile, OrientationFlippedVH) {
+		return OrientationFlippedVH, true
 	}
-	return orientation.Normal, false
+	return OrientationNormal, false
 }
 
 // tests if the pixel colours in two tiles are an exact match
-func (t *Tile) matchingColours(testTile *Tile, or orientation.Orientation) bool {
+func (t *Tile) matchingColours(testTile *Tile, or Orientation) bool {
 	base := t.orientations[or]
 	tileX, tileY := base.Bounds().Dx(), base.Bounds().Dy()
 
-	tile := testTile.orientations[orientation.Normal]
+	tile := testTile.orientations[OrientationNormal]
 	if tile.Bounds().Dx() != tileX || tile.Bounds().Dy() != tileY {
 		return false
 	}
@@ -135,12 +134,12 @@ func (t *Tile) matchingColours(testTile *Tile, or orientation.Orientation) bool 
 // Generate image data for each orientation, from the existing image data.
 // This increases the tile data size but saves a great deal of processing time.
 func (t *Tile) generateFlippedOrientations() {
-	img := t.orientations[orientation.Normal]
+	img := t.orientations[OrientationNormal]
 
 	// TODO: use goroutines
-	t.orientations[orientation.FlippedH] = imaging.FlipH(img)
+	t.orientations[OrientationFlippedH] = imaging.FlipH(img)
 
 	flippedV := imaging.FlipV(img)
-	t.orientations[orientation.FlippedV] = flippedV
-	t.orientations[orientation.FlippedVH] = imaging.FlipH(flippedV)
+	t.orientations[OrientationFlippedV] = flippedV
+	t.orientations[OrientationFlippedVH] = imaging.FlipH(flippedV)
 }

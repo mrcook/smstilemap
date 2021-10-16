@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-
-	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 // Tiled represents a tiled version of a the original image, consisting of unique 8x8 tiles.
@@ -91,7 +89,7 @@ func (b *Tiled) ToImage() (image.Image, error) {
 
 		y := bgTile.RowPosInPixels()
 		x := bgTile.ColPosInPixels()
-		if err := b.drawTileAt(bgTile, img, y, x, orientation.Normal); err != nil {
+		if err := b.drawTileAt(bgTile, img, y, x, OrientationNormal); err != nil {
 			return nil, err
 		}
 
@@ -151,7 +149,7 @@ func (b *Tiled) addTileColoursToPalette(tile *imageTile) {
 	}
 }
 
-func (b *Tiled) drawTileAt(tile *Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation orientation.Orientation) error {
+func (b *Tiled) drawTileAt(tile *Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation Orientation) error {
 	for y := 0; y < tile.tileSize; y++ {
 		for x := 0; x < tile.tileSize; x++ {
 			colour, err := tile.OrientationAt(y, x, orientation)

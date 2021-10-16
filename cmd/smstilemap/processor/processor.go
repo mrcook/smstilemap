@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrcook/smstilemap/cmd/smstilemap/processor/internal/tiler"
 	"github.com/mrcook/smstilemap/sms"
+	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 // ImageToSms converts an image into SMS tile data.
@@ -126,7 +127,7 @@ func addTileToTilemap(sega *sms.SMS, tile *tiler.Tile, tileId uint16) error {
 	word := sms.Word{TileNumber: tileId}
 
 	// the tile
-	word.SetFlippedStateFromOrientation(tile.Orientation())
+	word.SetFlippedStateFromOrientation(smsOrientation(tile.Orientation()))
 	if err := sega.AddTilemapEntryAt(tile.Row(), tile.Col(), word); err != nil {
 		return err
 	}
@@ -138,12 +139,26 @@ func addTileToTilemap(sega *sms.SMS, tile *tiler.Tile, tileId uint16) error {
 			return err
 		}
 
-		word.SetFlippedStateFromOrientation(inf.Orientation())
+		word.SetFlippedStateFromOrientation(smsOrientation(inf.Orientation()))
 		if err := sega.AddTilemapEntryAt(inf.Row(), inf.Col(), word); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// converts a tiler orientation to an SMS orientation.
+func smsOrientation(or tiler.Orientation) orientation.Orientation {
+	switch or {
+	case tiler.OrientationFlippedV:
+		return orientation.FlippedV
+	case tiler.OrientationFlippedH:
+		return orientation.FlippedH
+	case tiler.OrientationFlippedVH:
+		return orientation.FlippedVH
+	default:
+		return orientation.Normal
+	}
 }
 
 // draws a tile to the image using the tilemap entry data

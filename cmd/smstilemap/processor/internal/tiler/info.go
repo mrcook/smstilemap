@@ -1,10 +1,8 @@
 package tiler
 
-import "github.com/mrcook/smstilemap/sms/orientation"
-
 type info struct {
 	col, row    int // of the tile as used in the tilemap
-	orientation orientation.Orientation
+	orientation Orientation
 }
 
 func (i *info) Row() int {
@@ -15,6 +13,6 @@ func (i *info) Col() int {
 	return i.col
 }
 
-func (i *info) Orientation() orientation.Orientation {
+func (i *info) Orientation() Orientation {
 	return i.orientation
 }
