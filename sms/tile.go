@@ -26,18 +26,22 @@ type Tile struct {
 	pixels [tileSize][tileSize]PaletteId
 }
 
-// PixelAt gets the palette colour from the tile at row/col.
-func (t *Tile) PixelAt(row, col int) (PaletteId, error) {
-	if row >= tileSize || col >= tileSize {
-		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
+func (t *Tile) Size() int {
+	return tileSize
+}
+
+// PaletteIdAt returns the SMS palette ID from the tile for the requested pixel.
+func (t *Tile) PaletteIdAt(row, col int) (PaletteId, error) {
+	if row >= t.Size() || col >= t.Size() {
+		return 0, fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, t.Size())
 	}
 	return t.pixels[row][col], nil
 }
 
-// SetPixelAt sets a pixel in the tile at row/col with an ID from the colour palette.
-func (t *Tile) SetPixelAt(row, col int, pid PaletteId) error {
-	if row >= tileSize || col >= tileSize {
-		return fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, tileSize)
+// SetPaletteIdAt sets the SMS palette ID for the pixel at row/col.
+func (t *Tile) SetPaletteIdAt(row, col int, pid PaletteId) error {
+	if row >= t.Size() || col >= t.Size() {
+		return fmt.Errorf("tile indexing out of bounds, requested (%d,%d), tile size is %d", row, col, t.Size())
 	}
 	t.pixels[row][col] = pid
 	return nil
@@ -46,4 +50,39 @@ func (t *Tile) SetPixelAt(row, col int, pid PaletteId) error {
 // ToPlanarData converts a tile to an SMS planar data slice.
 func (t *Tile) ToPlanarData() [planarDataSize]uint8 {
 	return [planarDataSize]uint8{} // TODO: implement
+}
+
+// Flipped copies the source tile, applying the flipped states.
+func (t *Tile) Flipped(word *Word) *Tile {
+	if !word.VerticalFlip && !word.HorizontalFlip {
+		return t
+	}
+	flipped := *t // make a copy
+
+	if word.HorizontalFlip {
+		for row := 0; row < t.Size(); row++ {
+			for col := 0; col < t.Size(); col++ {
+				a := col
+				b := t.Size() - 1 - col
+				if a >= b {
+					break
+				}
+				flipped.pixels[row][a], flipped.pixels[row][b] = flipped.pixels[row][b], flipped.pixels[row][a]
+			}
+		}
+	}
+	if word.VerticalFlip {
+		for row := 0; row < t.Size(); row++ {
+			a := row
+			b := t.Size() - 1 - row
+			if a >= b {
+				break
+			}
+			for col := 0; col < t.Size(); col++ {
+				flipped.pixels[a][col], flipped.pixels[b][col] = flipped.pixels[b][col], flipped.pixels[a][col]
+			}
+		}
+	}
+
+	return &flipped
 }

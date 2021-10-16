@@ -6,7 +6,6 @@ import (
 
 	"github.com/mrcook/smstilemap/cmd/smstilemap/imager/internal/tiler"
 	"github.com/mrcook/smstilemap/sms"
-	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 const tileSize = 8
@@ -18,13 +17,13 @@ type Imager struct {
 
 // FromImage converts the given image into SMS image data.
 func (t *Imager) FromImage(img image.Image) error {
-	tiled, err := imageToTiled(img, tileSize)
+	tiled, err := t.imageToTiled(img, tileSize)
 	if err != nil {
 		return err
 	}
 	t.tiled = tiled
 
-	sega, err := tiledToSMS(tiled)
+	sega, err := t.tiledToSMS(tiled)
 	if err != nil {
 		return err
 	}
@@ -33,13 +32,30 @@ func (t *Imager) FromImage(img image.Image) error {
 	return nil
 }
 
-// TilemapToImage converts the tiled data to a new NRGBA image, with all tiles mapped
-// back to their original positions.
-func (t *Imager) TilemapToImage() (image.Image, error) {
-	return convertScreenToImage(t.tiled)
+// SmsToImage converts the SMS data to a new NRGBA image, with the tile layout
+// as defined in the tilemap name table.
+func (t *Imager) SmsToImage() (image.Image, error) {
+	if t.sega == nil {
+		return nil, fmt.Errorf("no image data available to convert")
+	}
+
+	img := image.NewNRGBA(image.Rectangle{
+		Min: image.Point{X: 0, Y: 0},
+		Max: image.Point{X: t.sega.WidthInPixels(), Y: t.sega.VisibleHeightInPixels()},
+	})
+
+	for row := 0; row < t.sega.VisibleHeightInTiles(); row++ {
+		for col := 0; col < t.sega.WidthInTiles(); col++ {
+			if err := t.drawTilemapEntryFor(row, col, t.sega, img); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return img, nil
 }
 
-func imageToTiled(img image.Image, tileSize int) (*tiler.Tiled, error) {
+func (t *Imager) imageToTiled(img image.Image, tileSize int) (*tiler.Tiled, error) {
 	// validate image is suitable for the SMS
 	if img == nil {
 		return nil, fmt.Errorf("source image is nil")
@@ -58,7 +74,7 @@ func imageToTiled(img image.Image, tileSize int) (*tiler.Tiled, error) {
 	return tiled, nil
 }
 
-func tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
+func (t *Imager) tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
 	sega := sms.SMS{}
 
 	for i := 0; i < tiled.TileCount(); i++ {
@@ -73,7 +89,7 @@ func tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
 			}
 		}
 
-		smsTile, err := convertToSmsTile(&sega, tile)
+		smsTile, err := t.convertToSmsTile(&sega, tile)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +98,7 @@ func tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
 			return nil, err
 		}
 
-		if err := updateTilemap(tid, &sega, tile); err != nil {
+		if err := t.updateTilemap(tid, &sega, tile); err != nil {
 			return nil, err
 		}
 	}
@@ -91,7 +107,7 @@ func tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
 }
 
 // convert to an SMS tile, matching colours to SMS palette colours
-func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
+func (t *Imager) convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
 	smsTile := sms.Tile{}
 
 	for row := 0; row < tile.Size(); row++ {
@@ -111,7 +127,7 @@ func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
 			}
 
 			// sets the pixel colour using the palette ID
-			if err := smsTile.SetPixelAt(row, col, pid); err != nil {
+			if err := smsTile.SetPaletteIdAt(row, col, pid); err != nil {
 				return nil, err
 			}
 		}
@@ -121,7 +137,7 @@ func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
 }
 
 // update tilemap with the tile+duplicate locations
-func updateTilemap(tid uint16, sega *sms.SMS, tile *tiler.Tile) error {
+func (t *Imager) updateTilemap(tid uint16, sega *sms.SMS, tile *tiler.Tile) error {
 	word := sms.Word{TileNumber: tid}
 
 	// the tile
@@ -145,47 +161,46 @@ func updateTilemap(tid uint16, sega *sms.SMS, tile *tiler.Tile) error {
 	return nil
 }
 
-func convertScreenToImage(bg *tiler.Tiled) (image.Image, error) {
-	if bg == nil {
-		return nil, fmt.Errorf("no image data available to convert")
+// draws a tile to the image using the tilemap entry data
+func (t *Imager) drawTilemapEntryFor(row, col int, sega *sms.SMS, img *image.NRGBA) error {
+	tile, err := t.smsTileForTilemapEntryAt(sega, row, col)
+	if err != nil {
+		return err
 	}
 
-	img := image.NewNRGBA(image.Rectangle{
-		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: bg.Width(), Y: bg.Height()},
-	})
+	errorMessage := "draw tile error"
+	pxOffsetY := row * tile.Size()
+	pxOffsetX := col * tile.Size()
 
-	for i := 0; i < bg.TileCount(); i++ {
-		bgTile, _ := bg.GetTile(i)
-
-		y := bgTile.RowPosInPixels()
-		x := bgTile.ColPosInPixels()
-		if err := drawTileAt(bgTile, img, y, x, orientation.Normal); err != nil {
-			return nil, err
-		}
-
-		for did := 0; did < bgTile.DuplicateCount(); did++ {
-			info, _ := bgTile.GetDuplicateInfo(did)
-			y = info.Row() * tileSize
-			x = info.Col() * tileSize
-			if err := drawTileAt(bgTile, img, y, x, info.Orientation()); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return img, nil
-}
-
-func drawTileAt(tile *tiler.Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation orientation.Orientation) error {
-	for y := 0; y < tileSize; y++ {
-		for x := 0; x < tileSize; x++ {
-			colour, err := tile.OrientationAt(y, x, orientation)
+	for y := 0; y < tile.Size(); y++ {
+		for x := 0; x < tile.Size(); x++ {
+			paletteId, err := tile.PaletteIdAt(y, x)
 			if err != nil {
-				return fmt.Errorf("draw tile error: %w", err)
+				return fmt.Errorf("%s: %w", errorMessage, err)
+			}
+			colour, err := sega.PaletteColour(paletteId)
+			if err != nil {
+				return fmt.Errorf("%s: %w", errorMessage, err)
 			}
 			img.Set(pxOffsetX+x, pxOffsetY+y, colour)
 		}
 	}
 	return nil
+}
+
+// returns the mapped tile for the given row/col.
+func (t *Imager) smsTileForTilemapEntryAt(sega *sms.SMS, row, col int) (*sms.Tile, error) {
+	processingErrorMessage := "tilemap to orientated tile error"
+
+	mapEntry, err := sega.TilemapEntryAt(row, col)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", processingErrorMessage, err)
+	}
+	tile, err := sega.TileAt(mapEntry.TileNumber)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", processingErrorMessage, err)
+	}
+
+	// set the correct orientation.
+	return tile.Flipped(mapEntry), nil
 }

@@ -21,13 +21,13 @@ func main() {
 
 	tiled := imager.Imager{}
 
-	// convert PNG image to a tiled representation
+	// convert the PNG image to an SMS representation
 	if err := tiled.FromImage(pngImage); err != nil {
 		log.Fatal(err)
 	}
 
-	// convert the tiles back to a normal image
-	dstImage, err := tiled.TilemapToImage()
+	// convert SMS tilemap data back to a normal image
+	dstImage, err := tiled.SmsToImage()
 	if err != nil {
 		log.Fatal(err)
 	}

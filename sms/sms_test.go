@@ -12,7 +12,7 @@ func TestSMS_TileAt(t *testing.T) {
 	t.Run("get the saved tile correctly", func(t *testing.T) {
 		// generate a tile that can be checked
 		tile := sms.Tile{}
-		_ = tile.SetPixelAt(1, 1, 5)
+		_ = tile.SetPaletteIdAt(1, 1, 5)
 		pos, _ := sega.AddTile(&tile)
 
 		foundTile, err := sega.TileAt(pos)
@@ -20,7 +20,7 @@ func TestSMS_TileAt(t *testing.T) {
 			t.Fatalf("unexpected error: %q", err)
 		}
 		// get the pid and check it matches
-		px, _ := foundTile.PixelAt(1, 1)
+		px, _ := foundTile.PaletteIdAt(1, 1)
 		if px != 5 {
 			t.Errorf("expect to find tile with correct palette ID, got %d", px)
 		}

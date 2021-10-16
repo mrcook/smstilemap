@@ -38,6 +38,27 @@ func (c Colour) RGB() (r, g, b uint8) {
 	return 0, 0, 0
 }
 
+// RGBA implements the Go `color.Color` interface.
+func (c Colour) RGBA() (r, g, b, a uint32) {
+	cR, cG, cB := c.RGB()
+
+	r = uint32(cR)
+	r |= r << 8
+	r *= uint32(255)
+	r /= 0xff
+	g = uint32(cG)
+	g |= g << 8
+	g *= uint32(255)
+	g /= 0xff
+	b = uint32(cB)
+	b |= b << 8
+	b *= uint32(255)
+	b /= 0xff
+	a = uint32(255)
+	a |= a << 8
+	return
+}
+
 const htmlBlack = "#000000"
 
 // HTML returns a HTML compatible hex value for the colour.

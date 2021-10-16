@@ -66,3 +66,15 @@ func (t *Tilemap) Set(row, col int, word Word) error {
 	t.table[row][col] = word
 	return nil
 }
+
+func (t Tilemap) Width() int {
+	return tilemapCols
+}
+
+func (t Tilemap) Height() int {
+	return tilemapRows
+}
+
+func (t Tilemap) VisibleHeight() int {
+	return tilemapRows - 4
+}

@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+
+	"github.com/mrcook/smstilemap/sms/orientation"
 )
 
 // Tiled represents a tiled version of a the original image, consisting of unique 8x8 tiles.
@@ -72,6 +74,40 @@ func (b *Tiled) ColourCount() int {
 	return len(b.palette)
 }
 
+// ToImage converts the tiled data to a new NRGBA image, with all tiles mapped
+// back to their original positions.
+func (b *Tiled) ToImage() (image.Image, error) {
+	if b == nil {
+		return nil, fmt.Errorf("no image data available to convert")
+	}
+
+	img := image.NewNRGBA(image.Rectangle{
+		Min: image.Point{X: 0, Y: 0},
+		Max: image.Point{X: b.Width(), Y: b.Height()},
+	})
+
+	for i := 0; i < b.TileCount(); i++ {
+		bgTile, _ := b.GetTile(i)
+
+		y := bgTile.RowPosInPixels()
+		x := bgTile.ColPosInPixels()
+		if err := b.drawTileAt(bgTile, img, y, x, orientation.Normal); err != nil {
+			return nil, err
+		}
+
+		for did := 0; did < bgTile.DuplicateCount(); did++ {
+			info, _ := bgTile.GetDuplicateInfo(did)
+			y = info.Row() * bgTile.tileSize
+			x = info.Col() * bgTile.tileSize
+			if err := b.drawTileAt(bgTile, img, y, x, info.Orientation()); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return img, nil
+}
+
 // processes the tile list, recording all unique tiles, and adding duplicate
 // info if the tile is already present.
 func (b *Tiled) generateUniqueTileList(tiles []imageTile) {
@@ -99,8 +135,8 @@ func (b *Tiled) addTile(tile *imageTile) {
 // if a tile is a duplicate, add it to the duplicates list
 func (b *Tiled) addIfDuplicate(tileID int, tile *imageTile) bool {
 	t := New(tile.posX, tile.posY, b.tileSize, tile.palette, tile.image)
-	if orientation, dupe := b.tiles[tileID].IsDuplicate(t); dupe {
-		b.tiles[tileID].AddDuplicateInfo(tile.posX, tile.posY, orientation)
+	if or, dupe := b.tiles[tileID].IsDuplicate(t); dupe {
+		b.tiles[tileID].AddDuplicateInfo(tile.posX, tile.posY, or)
 		return true
 	}
 	return false
@@ -113,4 +149,17 @@ func (b *Tiled) addTileColoursToPalette(tile *imageTile) {
 			b.palette[k] = v
 		}
 	}
+}
+
+func (b *Tiled) drawTileAt(tile *Tile, img *image.NRGBA, pxOffsetY, pxOffsetX int, orientation orientation.Orientation) error {
+	for y := 0; y < tile.tileSize; y++ {
+		for x := 0; x < tile.tileSize; x++ {
+			colour, err := tile.OrientationAt(y, x, orientation)
+			if err != nil {
+				return fmt.Errorf("draw tile error: %w", err)
+			}
+			img.Set(pxOffsetX+x, pxOffsetY+y, colour)
+		}
+	}
+	return nil
 }

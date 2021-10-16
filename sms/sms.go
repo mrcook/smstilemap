@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	MaxScreenWidth  = 256 // screen width in pixels
-	MaxScreenHeight = 224 // screen height in pixels, only 192px are visible on the SMS
-	MaxColourCount  = 64  // maximum colours the SMS supports
-	MaxTileCount    = 448 // maximum number of tiles the VDP can store
+	MaxScreenWidth         = 256 // screen width in pixels
+	MaxScreenHeight        = 224 // screen height in pixels
+	MaxVisibleScreenHeight = 192 // visible screen height in pixels on the SMS
+	MaxColourCount         = 64  // maximum colours the SMS supports
+	MaxTileCount           = 448 // maximum number of tiles the VDP can store
 )
 
 type SMS struct {
@@ -36,6 +37,30 @@ type SMS struct {
 	// additional values representing the X/Y coordinates (x,y coords, tile ID).
 	// NOTE: probably not needed in this library.
 	sat [256]uint8
+}
+
+func (s *SMS) WidthInPixels() int {
+	return MaxScreenWidth
+}
+
+func (s *SMS) WidthInTiles() int {
+	return s.nameTable.Width()
+}
+
+func (s *SMS) HeightInPixels() int {
+	return MaxScreenHeight
+}
+
+func (s *SMS) VisibleHeightInPixels() int {
+	return MaxVisibleScreenHeight
+}
+
+func (s *SMS) HeightInTiles() int {
+	return s.nameTable.Height()
+}
+
+func (s *SMS) VisibleHeightInTiles() int {
+	return s.nameTable.VisibleHeight()
 }
 
 func (s *SMS) TileAt(id uint16) (*Tile, error) {
@@ -77,4 +102,9 @@ func (s *SMS) PaletteIdForColour(colour Colour) (PaletteId, error) {
 // An error is returned when the palette is full.
 func (s *SMS) AddPaletteColour(colour Colour) (PaletteId, error) {
 	return s.palette.AddColour(colour)
+}
+
+// PaletteColour returns the colour for the given palette ID.
+func (s *SMS) PaletteColour(id PaletteId) (Colour, error) {
+	return s.palette.ColourAt(id)
 }
