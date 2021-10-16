@@ -94,8 +94,8 @@ func tiledToSMS(tiled *tiler.Tiled) (*sms.SMS, error) {
 func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
 	smsTile := sms.Tile{}
 
-	for row := 0; row < tile.RowInPixels(); row++ {
-		for col := 0; col < tile.ColInPixels(); col++ {
+	for row := 0; row < tile.Size(); row++ {
+		for col := 0; col < tile.Size(); col++ {
 			// get the colour for the current pixel
 			c, err := tile.OrientationAt(row, col, tile.Orientation())
 			if err != nil {
@@ -158,8 +158,8 @@ func convertScreenToImage(bg *tiler.Tiled) (image.Image, error) {
 	for i := 0; i < bg.TileCount(); i++ {
 		bgTile, _ := bg.GetTile(i)
 
-		y := bgTile.RowInPixels()
-		x := bgTile.ColInPixels()
+		y := bgTile.RowPosInPixels()
+		x := bgTile.ColPosInPixels()
 		if err := drawTileAt(bgTile, img, y, x, orientation.Normal); err != nil {
 			return nil, err
 		}

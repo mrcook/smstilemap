@@ -43,13 +43,18 @@ func NewWithOrientations(row, col, tileSize int, palette Palette, tileImage imag
 	return t
 }
 
-// RowInPixels is the tile row in pixels, as located in the source image.
-func (t *Tile) RowInPixels() int {
+// Size is the number of width/height pixels of the tile; usually 8x8.
+func (t *Tile) Size() int {
+	return t.tileSize
+}
+
+// RowPosInPixels is the tile row location in pixels, as located in the source image.
+func (t *Tile) RowPosInPixels() int {
 	return t.row * t.tileSize
 }
 
-// ColInPixels is the tile column in pixels, as located in the source image.
-func (t *Tile) ColInPixels() int {
+// ColPosInPixels is the tile column location in pixels, as located in the source image.
+func (t *Tile) ColPosInPixels() int {
 	return t.col * t.tileSize
 }
 
