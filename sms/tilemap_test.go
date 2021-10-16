@@ -6,6 +6,27 @@ import (
 	"github.com/mrcook/smstilemap/sms"
 )
 
+func TestTilemap_Width(t *testing.T) {
+	tm := sms.Tilemap{}
+	if tm.Width() != 32 {
+		t.Errorf("expected tilemap width to be 32, got %d", tm.Width())
+	}
+}
+
+func TestTilemap_Height(t *testing.T) {
+	tm := sms.Tilemap{}
+	if tm.Height() != 28 {
+		t.Errorf("expected tilemap height to be 28, got %d", tm.Height())
+	}
+}
+
+func TestTilemap_VisibleHeight(t *testing.T) {
+	tm := sms.Tilemap{}
+	if tm.VisibleHeight() != 24 {
+		t.Errorf("expected tilemap visible height to be 24, got %d", tm.VisibleHeight())
+	}
+}
+
 func TestTilemap_Get(t *testing.T) {
 	tm := sms.Tilemap{}
 	word := sms.Word{TileNumber: 447}

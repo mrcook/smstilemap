@@ -201,6 +201,6 @@ func (t *Imager) smsTileForTilemapEntryAt(sega *sms.SMS, row, col int) (*sms.Til
 		return nil, fmt.Errorf("%s: %w", processingErrorMessage, err)
 	}
 
-	// set the correct orientation.
-	return tile.Flipped(mapEntry), nil
+	// set the correct orientation based on tilemap entry.
+	return tile.AsTilemap(mapEntry), nil
 }

@@ -39,35 +39,42 @@ type SMS struct {
 	sat [256]uint8
 }
 
+// WidthInPixels returns the maximum screen width in pixels.
 func (s *SMS) WidthInPixels() int {
 	return MaxScreenWidth
 }
 
+// WidthInTiles returns the maximum screen width calculated as 8x8 tiles.
 func (s *SMS) WidthInTiles() int {
 	return s.nameTable.Width()
 }
 
+// HeightInPixels returns the maximum screen height in pixels.
 func (s *SMS) HeightInPixels() int {
 	return MaxScreenHeight
 }
 
+// VisibleHeightInPixels returns the maximum visible screen height in pixels.
 func (s *SMS) VisibleHeightInPixels() int {
 	return MaxVisibleScreenHeight
 }
 
+// HeightInTiles returns the maximum screen height calculated as 8x8 tiles.
 func (s *SMS) HeightInTiles() int {
 	return s.nameTable.Height()
 }
 
+// VisibleHeightInTiles returns the maximum visible screen height calculated as 8x8 tiles.
 func (s *SMS) VisibleHeightInTiles() int {
 	return s.nameTable.VisibleHeight()
 }
 
-func (s *SMS) TileAt(id uint16) (*Tile, error) {
-	if int(id) >= len(s.characters) {
+// TileAt returns a reference to the character generator tile using the given ID.
+func (s *SMS) TileAt(tileId uint16) (*Tile, error) {
+	if int(tileId) >= len(s.characters) {
 		return nil, fmt.Errorf("invalid tile ID")
 	}
-	return s.characters[id], nil
+	return s.characters[tileId], nil
 }
 
 // AddTile adds a tile at the next available slot, returning its index position.
@@ -91,6 +98,11 @@ func (s *SMS) AddTilemapEntryAt(row, col int, word Word) error {
 	return s.nameTable.Set(row, col, word)
 }
 
+// PaletteColour returns the colour for the given palette ID.
+func (s *SMS) PaletteColour(id PaletteId) (Colour, error) {
+	return s.palette.ColourAt(id)
+}
+
 // PaletteIdForColour returns the palette index position for the requested colour.
 // If the colour is not found, an error is returned.
 func (s *SMS) PaletteIdForColour(colour Colour) (PaletteId, error) {
@@ -102,9 +114,4 @@ func (s *SMS) PaletteIdForColour(colour Colour) (PaletteId, error) {
 // An error is returned when the palette is full.
 func (s *SMS) AddPaletteColour(colour Colour) (PaletteId, error) {
 	return s.palette.AddColour(colour)
-}
-
-// PaletteColour returns the colour for the given palette ID.
-func (s *SMS) PaletteColour(id PaletteId) (Colour, error) {
-	return s.palette.ColourAt(id)
 }

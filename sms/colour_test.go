@@ -39,6 +39,13 @@ func TestColour_RGB(t *testing.T) {
 			}
 		})
 
+		t.Run(fmt.Sprintf("%s should return correct RGBA values", label), func(t *testing.T) {
+			r, b, g, a := col.RGBA()
+			if r != uint32(data.r)*257 && g != uint32(data.g)*257 && b != uint32(data.b)*257 && a != 65535 {
+				t.Errorf("expected correct RGB values, got: %d, %d, %d", r, g, b)
+			}
+		})
+
 		t.Run(fmt.Sprintf("%s should return correct HTML string", label), func(t *testing.T) {
 			html := col.HTML()
 			if html != data.html {

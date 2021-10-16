@@ -48,6 +48,21 @@ type Tilemap struct {
 	table [tilemapRows][tilemapCols]Word
 }
 
+// Width returns the number of columns in the tilemap.
+func (t Tilemap) Width() int {
+	return tilemapCols
+}
+
+// Height returns the number of rows in the tilemap.
+func (t Tilemap) Height() int {
+	return tilemapRows
+}
+
+// VisibleHeight returns the number of rows in the tilemap that are visible to the SMS screen.
+func (t Tilemap) VisibleHeight() int {
+	return tilemapRows - 4
+}
+
 // Get returns the tile info from the requested location.
 func (t *Tilemap) Get(row, col int) (*Word, error) {
 	if row >= tilemapRows || col >= tilemapCols {
@@ -65,16 +80,4 @@ func (t *Tilemap) Set(row, col int, word Word) error {
 
 	t.table[row][col] = word
 	return nil
-}
-
-func (t Tilemap) Width() int {
-	return tilemapCols
-}
-
-func (t Tilemap) Height() int {
-	return tilemapRows
-}
-
-func (t Tilemap) VisibleHeight() int {
-	return tilemapRows - 4
 }

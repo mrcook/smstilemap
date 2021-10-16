@@ -6,6 +6,29 @@ import (
 	"github.com/mrcook/smstilemap/sms"
 )
 
+func TestSMS_ScreenDimensions(t *testing.T) {
+	sega := sms.SMS{}
+
+	if sega.WidthInPixels() != 256 {
+		t.Errorf("expected screen width to be 256px, got %dpx", sega.WidthInPixels())
+	}
+	if sega.WidthInTiles() != 32 {
+		t.Errorf("expected screen tile width to be 32, got %d", sega.WidthInTiles())
+	}
+	if sega.HeightInPixels() != 224 {
+		t.Errorf("expected screen height to be 224px, got %dpx", sega.HeightInPixels())
+	}
+	if sega.HeightInTiles() != 28 {
+		t.Errorf("expected screen tile height to be 28, got %d", sega.HeightInTiles())
+	}
+	if sega.VisibleHeightInPixels() != 192 {
+		t.Errorf("expected visible screen height to be 192px, got %dpx", sega.VisibleHeightInPixels())
+	}
+	if sega.VisibleHeightInTiles() != 24 {
+		t.Errorf("expected visible screen tile height to be 24, got %d", sega.VisibleHeightInTiles())
+	}
+}
+
 func TestSMS_TileAt(t *testing.T) {
 	sega := sms.SMS{}
 
@@ -103,6 +126,27 @@ func TestSMS_AddTilemapEntryAt(t *testing.T) {
 		err := vdp.AddTilemapEntryAt(28, 32, word)
 		if err == nil {
 			t.Fatal("expected an error")
+		}
+	})
+}
+
+func TestSMS_PaletteColour(t *testing.T) {
+	sega := sms.SMS{}
+	_, _ = sega.AddPaletteColour(sms.Colour(0b00000011))
+	colour := sms.Colour(0b00111111)
+	pid, _ := sega.AddPaletteColour(colour)
+
+	t.Run("return correct colour for given ID", func(t *testing.T) {
+		gotColour, _ := sega.PaletteColour(pid)
+		if gotColour != colour {
+			t.Errorf("expected correct colour, got %08b", pid)
+		}
+	})
+
+	t.Run("when no colour has been set for the requested palette ID", func(t *testing.T) {
+		_, err := sega.PaletteColour(pid + 1)
+		if err == nil {
+			t.Errorf("expected an error")
 		}
 	})
 }

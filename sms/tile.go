@@ -26,6 +26,7 @@ type Tile struct {
 	pixels [tileSize][tileSize]PaletteId
 }
 
+// Size returns the size of the tile (8x8).
 func (t *Tile) Size() int {
 	return tileSize
 }
@@ -52,12 +53,10 @@ func (t *Tile) ToPlanarData() [planarDataSize]uint8 {
 	return [planarDataSize]uint8{} // TODO: implement
 }
 
-// Flipped copies the source tile, applying the flipped states.
-func (t *Tile) Flipped(word *Word) *Tile {
-	if !word.VerticalFlip && !word.HorizontalFlip {
-		return t
-	}
-	flipped := *t // make a copy
+// AsTilemap returns a copy of the tile with any tilemap vertical/horizontal
+// flipped states applied.
+func (t *Tile) AsTilemap(word *Word) *Tile {
+	tile := *t // make a copy
 
 	if word.HorizontalFlip {
 		for row := 0; row < t.Size(); row++ {
@@ -67,7 +66,7 @@ func (t *Tile) Flipped(word *Word) *Tile {
 				if a >= b {
 					break
 				}
-				flipped.pixels[row][a], flipped.pixels[row][b] = flipped.pixels[row][b], flipped.pixels[row][a]
+				tile.pixels[row][a], tile.pixels[row][b] = tile.pixels[row][b], tile.pixels[row][a]
 			}
 		}
 	}
@@ -79,10 +78,10 @@ func (t *Tile) Flipped(word *Word) *Tile {
 				break
 			}
 			for col := 0; col < t.Size(); col++ {
-				flipped.pixels[a][col], flipped.pixels[b][col] = flipped.pixels[b][col], flipped.pixels[a][col]
+				tile.pixels[a][col], tile.pixels[b][col] = tile.pixels[b][col], tile.pixels[a][col]
 			}
 		}
 	}
 
-	return &flipped
+	return &tile
 }
