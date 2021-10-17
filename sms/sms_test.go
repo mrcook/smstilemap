@@ -169,7 +169,7 @@ func TestSMS_PaletteIdForColour(t *testing.T) {
 		_, err := sega.PaletteIdForColour(sms.Colour(0b00000011))
 		if err == nil {
 			t.Fatal("expected an error")
-		} else if err.Error() != "colour not found" {
+		} else if err.Error() != "palette error: no ID found to requested colour" {
 			t.Errorf("unexpected error message, got '%s'", err)
 		}
 	})
@@ -195,7 +195,7 @@ func TestSMS_AddPaletteColour(t *testing.T) {
 		_, err := sega.AddPaletteColour(sms.Colour(0b00111111))
 		if err == nil {
 			t.Fatalf("expected error")
-		} else if err.Error() != "palette full" {
+		} else if err.Error() != "palette error: can not add colour, palette full" {
 			t.Errorf("expect a valid error message, got '%s'", err)
 		}
 	})

@@ -3,6 +3,7 @@ package sms
 import "fmt"
 
 // Colour RAM stores two palettes of 16 colours each.
+// CRAM is accessible on the SMS using a base address of $C000.
 //
 // The first sixteen colours are the background palette and the second sixteen
 // are the sprite palette, which can also be used by the background tiles. Each
@@ -23,6 +24,8 @@ import "fmt"
 
 const paletteSize = 32
 
+var PaletteErr = fmt.Errorf("palette error")
+
 // PaletteId references one of the possible 32 palette colours.
 type PaletteId uint8
 
@@ -39,10 +42,10 @@ type entry struct {
 // ColourAt returns the colour stored at the given index position.
 func (p *Palette) ColourAt(pos PaletteId) (Colour, error) {
 	if pos >= paletteSize {
-		return 0, fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
+		return 0, fmt.Errorf("%w: index out of bounds, got %d, max value is %d", PaletteErr, pos, paletteSize-1)
 	}
 	if !p.colours[pos].enabled {
-		return 0, fmt.Errorf("uninitialised colour")
+		return 0, fmt.Errorf("%w: uninitialised colour for requested palette ID", PaletteErr)
 	}
 	return p.colours[pos].colour, nil
 }
@@ -50,7 +53,7 @@ func (p *Palette) ColourAt(pos PaletteId) (Colour, error) {
 // SetColourAt sets the palette colour at the given index position.
 func (p *Palette) SetColourAt(pos PaletteId, colour Colour) error {
 	if pos >= paletteSize {
-		return fmt.Errorf("palette index out of bounds, got %d, max value is %d", pos, paletteSize-1)
+		return fmt.Errorf("%w: index out of bounds, got %d, max value is %d", PaletteErr, pos, paletteSize-1)
 	}
 	p.colours[pos].colour = colour
 	p.colours[pos].enabled = true
@@ -73,7 +76,7 @@ func (p *Palette) AddColour(colour Colour) (PaletteId, error) {
 		}
 	}
 
-	return 0, fmt.Errorf("palette full")
+	return 0, fmt.Errorf("%w: can not add colour, palette full", PaletteErr)
 }
 
 // PaletteIdFor returns the position ID for a matching colour.
@@ -84,5 +87,14 @@ func (p *Palette) PaletteIdFor(colour Colour) (PaletteId, error) {
 			return PaletteId(i), nil
 		}
 	}
-	return 0, fmt.Errorf("colour not found")
+	return 0, fmt.Errorf("%w: no ID found to requested colour", PaletteErr)
+}
+
+// Bytes returns the palettes as a single slice of SMS colour bytes.
+// Unset colours are returned as $00 values.
+func (p *Palette) Bytes() (colours [32]uint8) {
+	for i, c := range p.colours {
+		colours[i] = c.colour.SMS()
+	}
+	return
 }

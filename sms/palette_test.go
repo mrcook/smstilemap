@@ -27,7 +27,7 @@ func TestPalette_ColourAt(t *testing.T) {
 		_, err := pal.ColourAt(32)
 		if err == nil {
 			t.Fatal("expected an error")
-		} else if err.Error() != "palette index out of bounds, got 32, max value is 31" {
+		} else if err.Error() != "palette error: index out of bounds, got 32, max value is 31" {
 			t.Errorf("expected correct error message, got '%s", err.Error())
 		}
 	})
@@ -36,7 +36,7 @@ func TestPalette_ColourAt(t *testing.T) {
 		_, err := pal.ColourAt(0)
 		if err == nil {
 			t.Fatal("expected an error")
-		} else if err.Error() != "uninitialised colour" {
+		} else if err.Error() != "palette error: uninitialised colour for requested palette ID" {
 			t.Errorf("expected correct error message, got '%s", err.Error())
 		}
 	})
@@ -62,7 +62,7 @@ func TestPalette_SetColourAt(t *testing.T) {
 		err := pal.SetColourAt(32, sms.Colour(0))
 		if err == nil {
 			t.Fatal("expected an error")
-		} else if err.Error() != "palette index out of bounds, got 32, max value is 31" {
+		} else if err.Error() != "palette error: index out of bounds, got 32, max value is 31" {
 			t.Errorf("expected correct error message, got '%s", err.Error())
 		}
 	})
@@ -133,7 +133,7 @@ func TestPalette_AddColour(t *testing.T) {
 		_, err := pal.AddColour(sms.Colour(0b00000011))
 		if err == nil {
 			t.Fatalf("expected error")
-		} else if err.Error() != "palette full" {
+		} else if err.Error() != "palette error: can not add colour, palette full" {
 			t.Errorf("expect a valid error message, got '%s'", err)
 		}
 	})
@@ -161,8 +161,37 @@ func TestPalette_PaletteIdFor(t *testing.T) {
 		_, err := pal.PaletteIdFor(sms.Colour(0b00000011))
 		if err == nil {
 			t.Fatal("expected an error")
-		} else if err.Error() != "colour not found" {
+		} else if err.Error() != "palette error: no ID found to requested colour" {
 			t.Errorf("unexpected error message, got '%s'", err)
+		}
+	})
+}
+
+func TestPalette_Bytes(t *testing.T) {
+	pal := sms.Palette{}
+	var colour1 uint8 = 0b00101010
+	var colour2 uint8 = 0b00101101
+	var colour3 uint8 = 0b00111111
+	_ = pal.SetColourAt(0, sms.Colour(colour1))
+	_ = pal.SetColourAt(1, sms.Colour(colour2))
+	_ = pal.SetColourAt(2, sms.Colour(colour3))
+
+	colours := pal.Bytes()
+	if colours[0] != colour1 {
+		t.Errorf("expected palette bytes to include colour #1, got %08b", colours[0])
+	}
+	if colours[1] != colour2 {
+		t.Errorf("expected palette bytes to include colour #2, got %08b", colours[1])
+	}
+	if colours[2] != colour3 {
+		t.Errorf("expected palette bytes to include colour #3, got %08b", colours[2])
+	}
+
+	t.Run("unset colours in palette bytes are zero values", func(t *testing.T) {
+		for i := 3; i < len(colours); i++ {
+			if colours[i] != 0b00000000 {
+				t.Errorf("expected unset palette byte #%02d to be a zero value, got %08b", i, colours[i])
+			}
 		}
 	})
 }

@@ -7,7 +7,7 @@ package sms
 //
 //   Bit:   7 6  |  5 4 |  3 2  | 1 0
 //     %: Unused | Blue | Green | Red
-type Colour uint8 // TODO: use struct and store all data on creation (RGB, HTML, etc.)
+type Colour uint8
 
 // FromRGB gets one of the SMS colours for the given RGB values.
 func FromRGB(r, g, b uint8) Colour {
