@@ -3,76 +3,120 @@ package processor
 import (
 	"fmt"
 	"image"
+	"image/png"
+	"os"
+	"path"
+	"strings"
 
 	"github.com/mrcook/smstilemap/cmd/smstilemap/processor/internal/tiler"
 	"github.com/mrcook/smstilemap/sms"
 )
 
-// ImageToSms converts an image into SMS tile data.
-func ImageToSms(img image.Image) (*sms.SMS, error) {
-	// validate image is suitable for conversion to the SMS
-	if img == nil {
-		return nil, fmt.Errorf("source image is nil")
-	} else if img.Bounds().Dx() > sms.ScreenWidth || img.Bounds().Dy() > sms.ScreenHeight {
-		return nil, fmt.Errorf("image size too big for SMS screen (%d x %d)", sms.ScreenWidth, sms.ScreenHeight)
-	}
-	tiled := tiler.FromImage(img, 8)
+type Processor struct {
+	pngInputFilename string
+	outputDirectory  string
+	baseFilename     string
 
-	// check there are too many colours for the SMS
-	if tiled.ColourCount() > sms.MaxColourCount {
-		return nil, fmt.Errorf("too many unique colours for SMS (max: %d)", sms.MaxColourCount)
-	}
-
-	// add the image tiles to the SMS
-	sega := sms.SMS{}
-	for i := 0; i < tiled.TileCount(); i++ {
-		tile, _ := tiled.GetTile(i)
-		if err := convertAndAddTileToSms(&sega, tile); err != nil {
-			return nil, err
-		}
-	}
-	return &sega, nil
+	image image.Image
+	sega  sms.SMS
 }
 
-// SmsToImage converts the SMS data to a new NRGBA image, with the tile layout
-// as defined in the tilemap name table.
-func SmsToImage(sega *sms.SMS) (image.Image, error) {
-	if sega == nil {
-		return nil, fmt.Errorf("no SMS data available to convert")
+func New(srcFilename, outputDir string) *Processor {
+	return &Processor{
+		pngInputFilename: srcFilename,
+		outputDirectory:  outputDirectory(outputDir, srcFilename),
+		baseFilename:     baseFilename(srcFilename),
 	}
-
-	img := image.NewNRGBA(image.Rectangle{
-		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: sega.WidthInPixels(), Y: sega.HeightInPixels()},
-	})
-
-	for row := 0; row < sega.HeightInTiles(); row++ {
-		for col := 0; col < sega.WidthInTiles(); col++ {
-			if err := drawTilemapEntry(sega, img, row, col); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return img, nil
 }
 
-func convertAndAddTileToSms(sega *sms.SMS, tile *tiler.Tile) error {
-	if err := addTileColoursToSmsPalette(sega, tile); err != nil {
-		return fmt.Errorf("error adding colours to SMS palette: %w", err)
+func (p *Processor) CreateOutputDirectory() error {
+	if err := os.MkdirAll(p.outputDirectory, 0755); err != nil {
+		return fmt.Errorf("error creating output directory: %w", err)
 	}
+	return nil
+}
 
-	smsTile, err := convertToSmsTile(sega, tile)
-	if err != nil {
-		return fmt.Errorf("error converting image tile to SMS tile: %w", err)
+func (p *Processor) PngToSMS() error {
+	if err := p.readPNG(p.pngInputFilename); err != nil {
+		return fmt.Errorf("PNG input file error: %w", err)
 	}
+	if err := p.imageToSMS(); err != nil {
+		return fmt.Errorf("PNG to SMS data error: %w", err)
+	}
+	return nil
+}
 
-	tid, err := sega.AddTile(smsTile)
+func (p *Processor) ExportSmsToPngImage() error {
+	// convert SMS tilemap data back to a normal image
+	dstImage, err := p.smsToImage()
 	if err != nil {
 		return err
 	}
 
-	if err := addTileToTilemap(sega, tile, tid); err != nil {
+	// save to new PNG file
+	if err := p.saveImageToFilename(dstImage, p.pngFilename()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Processor) readPNG(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	p.image, err = png.Decode(f)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// convert the PNG image to an SMS representation
+func (p *Processor) imageToSMS() error {
+	// validate image is suitable for conversion to the SMS
+	if p.image == nil {
+		return fmt.Errorf("source image is nil")
+	} else if p.image.Bounds().Dx() > sms.ScreenWidth || p.image.Bounds().Dy() > sms.ScreenHeight {
+		return fmt.Errorf("image size too big for SMS screen (%d x %d)", sms.ScreenWidth, sms.ScreenHeight)
+	}
+	tiled := tiler.FromImage(p.image, 8)
+
+	// check there are too many colours for the SMS
+	if tiled.ColourCount() > sms.MaxColourCount {
+		return fmt.Errorf("too many unique colours for SMS (max: %d)", sms.MaxColourCount)
+	}
+
+	// add the image tiles to the SMS
+	for i := 0; i < tiled.TileCount(); i++ {
+		tile, _ := tiled.GetTile(i)
+		if err := p.convertAndAddTileToSms(tile); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *Processor) convertAndAddTileToSms(tile *tiler.Tile) error {
+	if err := p.addTileColoursToSmsPalette(tile); err != nil {
+		return fmt.Errorf("error adding colours to SMS palette: %w", err)
+	}
+
+	smsTile, err := p.convertToSmsTile(tile)
+	if err != nil {
+		return fmt.Errorf("error converting image tile to SMS tile: %w", err)
+	}
+
+	tid, err := p.sega.AddTile(smsTile)
+	if err != nil {
+		return err
+	}
+
+	if err := p.addTileToTilemap(tile, tid); err != nil {
 		return fmt.Errorf("error adding tile to SMS tilemap: %w", err)
 	}
 
@@ -80,11 +124,11 @@ func convertAndAddTileToSms(sega *sms.SMS, tile *tiler.Tile) error {
 }
 
 // make sure all tile colours are added to the SMS palette
-func addTileColoursToSmsPalette(sega *sms.SMS, tile *tiler.Tile) error {
+func (p *Processor) addTileColoursToSmsPalette(tile *tiler.Tile) error {
 	for _, c := range tile.Palette() {
 		r, g, b, _ := c.RGBA()
 		colour := sms.FromNearestMatchRGB(uint8(r), uint8(g), uint8(b))
-		if _, err := sega.AddPaletteColour(colour); err != nil {
+		if _, err := p.sega.AddPaletteColour(colour); err != nil {
 			return err
 		}
 	}
@@ -92,7 +136,7 @@ func addTileColoursToSmsPalette(sega *sms.SMS, tile *tiler.Tile) error {
 }
 
 // convert to an SMS tile, matching colours to SMS palette colours
-func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
+func (p *Processor) convertToSmsTile(tile *tiler.Tile) (*sms.Tile, error) {
 	smsTile := sms.Tile{}
 
 	for row := 0; row < tile.Size(); row++ {
@@ -106,7 +150,7 @@ func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
 			colour := sms.FromNearestMatchRGB(uint8(r), uint8(g), uint8(b))
 
 			// find the palette ID for the colour
-			pid, err := sega.PaletteIdForColour(colour)
+			pid, err := p.sega.PaletteIdForColour(colour)
 			if err != nil {
 				return nil, err
 			}
@@ -122,12 +166,12 @@ func convertToSmsTile(sega *sms.SMS, tile *tiler.Tile) (*sms.Tile, error) {
 }
 
 // update tilemap with the tile+duplicate locations
-func addTileToTilemap(sega *sms.SMS, tile *tiler.Tile, tileId uint16) error {
+func (p *Processor) addTileToTilemap(tile *tiler.Tile, tileId uint16) error {
 	word := sms.Word{TileNumber: tileId}
 
 	// the tile
-	word.SetFlippedStateFromOrientation(smsOrientation(tile.Orientation()))
-	if err := sega.AddTilemapEntryAt(tile.Row(), tile.Col(), word); err != nil {
+	word.SetFlippedStateFromOrientation(p.smsOrientation(tile.Orientation()))
+	if err := p.sega.AddTilemapEntryAt(tile.Row(), tile.Col(), word); err != nil {
 		return err
 	}
 
@@ -138,8 +182,8 @@ func addTileToTilemap(sega *sms.SMS, tile *tiler.Tile, tileId uint16) error {
 			return err
 		}
 
-		word.SetFlippedStateFromOrientation(smsOrientation(inf.Orientation()))
-		if err := sega.AddTilemapEntryAt(inf.Row(), inf.Col(), word); err != nil {
+		word.SetFlippedStateFromOrientation(p.smsOrientation(inf.Orientation()))
+		if err := p.sega.AddTilemapEntryAt(inf.Row(), inf.Col(), word); err != nil {
 			return err
 		}
 	}
@@ -147,7 +191,7 @@ func addTileToTilemap(sega *sms.SMS, tile *tiler.Tile, tileId uint16) error {
 }
 
 // converts a tiler orientation to an SMS orientation.
-func smsOrientation(or tiler.Orientation) sms.Orientation {
+func (p *Processor) smsOrientation(or tiler.Orientation) sms.Orientation {
 	switch or {
 	case tiler.OrientationFlippedV:
 		return sms.OrientationFlippedV
@@ -160,9 +204,28 @@ func smsOrientation(or tiler.Orientation) sms.Orientation {
 	}
 }
 
+// smsToImage converts the SMS data to a new NRGBA image, with the tile layout
+// as defined in the tilemap name table.
+func (p *Processor) smsToImage() (image.Image, error) {
+	img := image.NewNRGBA(image.Rectangle{
+		Min: image.Point{X: 0, Y: 0},
+		Max: image.Point{X: p.sega.WidthInPixels(), Y: p.sega.HeightInPixels()},
+	})
+
+	for row := 0; row < p.sega.HeightInTiles(); row++ {
+		for col := 0; col < p.sega.WidthInTiles(); col++ {
+			if err := p.drawTilemapEntry(img, row, col); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return img, nil
+}
+
 // draws a tile to the image using the tilemap entry data
-func drawTilemapEntry(sega *sms.SMS, img *image.NRGBA, row, col int) error {
-	tile, err := smsTileForTilemapEntryAt(sega, row, col)
+func (p *Processor) drawTilemapEntry(img *image.NRGBA, row, col int) error {
+	tile, err := p.smsTileForTilemapEntryAt(row, col)
 	if err != nil {
 		return err
 	}
@@ -177,7 +240,7 @@ func drawTilemapEntry(sega *sms.SMS, img *image.NRGBA, row, col int) error {
 			if err != nil {
 				return fmt.Errorf("%s: %w", errorMessage, err)
 			}
-			colour, err := sega.PaletteColour(paletteId)
+			colour, err := p.sega.PaletteColour(paletteId)
 			if err != nil {
 				return fmt.Errorf("%s: %w", errorMessage, err)
 			}
@@ -188,18 +251,48 @@ func drawTilemapEntry(sega *sms.SMS, img *image.NRGBA, row, col int) error {
 }
 
 // returns the mapped tile for the given row/col.
-func smsTileForTilemapEntryAt(sega *sms.SMS, row, col int) (*sms.Tile, error) {
+func (p *Processor) smsTileForTilemapEntryAt(row, col int) (*sms.Tile, error) {
 	processingErrorMessage := "converting tilemap tile to correctly flipped tile"
 
-	mapEntry, err := sega.TilemapEntryAt(row, col)
+	mapEntry, err := p.sega.TilemapEntryAt(row, col)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", processingErrorMessage, err)
 	}
-	tile, err := sega.TileAt(mapEntry.TileNumber)
+	tile, err := p.sega.TileAt(mapEntry.TileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", processingErrorMessage, err)
 	}
 
 	// set the correct orientation based on tilemap entry.
 	return tile.AsTilemap(mapEntry), nil
+}
+
+func (p *Processor) saveImageToFilename(i image.Image, filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	err = png.Encode(f, i)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Processor) pngFilename() string {
+	return path.Join(p.outputDirectory, p.baseFilename+"-generated.png")
+}
+
+func outputDirectory(dir, inFilename string) string {
+	if len(dir) > 0 {
+		return dir
+	}
+	return path.Dir(inFilename)
+}
+
+func baseFilename(input string) string {
+	file := path.Base(input)
+	return strings.ReplaceAll(file, path.Ext(file), "")
 }

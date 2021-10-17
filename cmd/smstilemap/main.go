@@ -3,27 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
-	"image"
-	"image/png"
-	"log"
 	"os"
-	"path"
-	"strings"
 
 	"github.com/mrcook/smstilemap/cmd/smstilemap/processor"
 	"github.com/mrcook/smstilemap/sms"
 )
 
 var (
-	inputFilename  *string
-	outputFormat   *string
-	outputFilename *string
+	inputFilename   *string
+	outputDirectory *string
+	testLibrary     *bool
 )
 
 func init() {
 	inputFilename = flag.String("in", "", "Input PNG filename")
-	outputFormat = flag.String("format", "png", "Format to output: png")
-	outputFilename = flag.String("out", "", "Output PNG filename (optional)")
+	outputDirectory = flag.String("dir", "", "Output directory for generated files (default: input filename directory)")
+	testLibrary = flag.Bool("test", true, "Test SMS library by generating a new PNG file")
 	v := flag.Bool("v", false, "Display version number")
 
 	flag.Parse()
@@ -39,78 +34,25 @@ func init() {
 		flag.Usage()
 		os.Exit(2)
 	}
-
-	// TODO: support SMS output
-	*outputFormat = "png"
-
-	if len(*outputFilename) == 0 {
-		*outputFilename = setOutputFilename()
-	}
-
-	outputExtension := ".png"
-	if path.Ext(*outputFilename) != outputExtension {
-		*outputFilename += outputExtension
-	}
 }
 
 func main() {
-	srcImage, err := openImage(*inputFilename)
-	if err != nil {
-		log.Fatal(err)
+	pro := processor.New(*inputFilename, *outputDirectory)
+
+	if err := pro.CreateOutputDirectory(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	// convert the PNG image to an SMS representation
-	sega, err := processor.ImageToSms(srcImage)
-	if err != nil {
-		log.Fatal(err)
+	if err := pro.PngToSMS(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	// convert SMS tilemap data back to a normal image
-	dstImage, err := processor.SmsToImage(sega)
-	if err != nil {
-		log.Fatal(err)
+	if *testLibrary {
+		if err := pro.ExportSmsToPngImage(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
-
-	// save to new png
-	if err := saveImage(dstImage, *outputFilename); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func setOutputFilename() string {
-	dir := path.Dir(*inputFilename)
-	file := path.Base(*inputFilename)
-
-	file = strings.ReplaceAll(file, path.Ext(file), "")
-	file += "-new.png"
-
-	return path.Join(dir, file)
-}
-
-func openImage(filename string) (image.Image, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	decodedImage, err := png.Decode(f)
-	if err != nil {
-		return nil, err
-	}
-	return decodedImage, nil
-}
-
-func saveImage(i image.Image, filename string) error {
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	err = png.Encode(f, i)
-	if err != nil {
-		return err
-	}
-	return nil
 }
