@@ -1,9 +1,27 @@
 // Package sms can be used to construct a set of objects for converting to SMS
 // VDP data (palettes, tiles, tilemap, etc.)
 //
-// VRAM has an area dedicated to tiles called the Character generator (Sega
-// calls tiles 'Characters'), along with the tilemap and SAT.
-// CRAM stores two palettes of 16 colours each.
+// * VRAM has an area dedicated to tiles called the Character generator
+//   (Sega calls tiles 'Characters'), along with the tilemap and SAT.
+// * CRAM stores two palettes of 16 colours each. Accessed using a base address
+//   of $C000.
+//
+// A typical memory map for the VRAM is as follows (noting that the screen
+// display and sprite information tables can be moved to any desired point):
+//
+//   $C020 ---------------------------------------------------------------
+//         Palette data: 2 palettes of 16 colours each.
+//   $C000 ---------------------------------------------------------------
+//
+//   $4000 ---------------------------------------------------------------
+//         Sprite Attribute Table: array of all the defined sprites
+//   $3F00 ---------------------------------------------------------------
+//         Tilemap (name table): 32x28 table of tile IDs & attributes
+//   $3800 ---------------------------------------------------------------
+//         Sprite/tile patterns, 256..447
+//   $2000 ---------------------------------------------------------------
+//         Sprite/tile patterns, 0..255
+//   $0000 ---------------------------------------------------------------
 package sms
 
 import (
@@ -29,15 +47,17 @@ type SMS struct {
 	// with their attributes.
 	nameTable Tilemap
 
-	// Palette of 32 colours (2x16) used for the background and sprite palettes.
-	palette Palette
-
 	// The SAT (Sprite Attribute Table) is a 256-byte area in VideoRam that
 	// contains an array of all the sprites defined, its entries are
 	// similar to the background layer, except each sprite contain two
 	// additional values representing the X/Y coordinates (x,y coords, tile ID).
+	// For the majority of cases the table is stored at VRAM address $3F00.
 	// NOTE: probably not needed in this library.
 	sat [256]uint8
+
+	// Palette of 32 colours (2x16) used for the background and sprite palettes.
+	// Accessed using a base address of $C000.
+	palette Palette
 }
 
 // WidthInPixels returns the maximum screen width in pixels.
