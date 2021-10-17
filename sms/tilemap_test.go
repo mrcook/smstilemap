@@ -15,25 +15,25 @@ func TestTilemap_Width(t *testing.T) {
 
 func TestTilemap_Height(t *testing.T) {
 	tm := sms.Tilemap{}
-	if tm.Height() != 28 {
-		t.Errorf("expected tilemap height to be 28, got %d", tm.Height())
+	if tm.Height() != 24 {
+		t.Errorf("expected tilemap height to be 24, got %d", tm.Height())
 	}
 }
 
-func TestTilemap_VisibleHeight(t *testing.T) {
+func TestTilemap_ExtendedHeight(t *testing.T) {
 	tm := sms.Tilemap{}
-	if tm.VisibleHeight() != 24 {
-		t.Errorf("expected tilemap visible height to be 24, got %d", tm.VisibleHeight())
+	if tm.ExtendedHeight() != 28 {
+		t.Errorf("expected tilemap extended height to be 28, got %d", tm.ExtendedHeight())
 	}
 }
 
 func TestTilemap_Get(t *testing.T) {
 	tm := sms.Tilemap{}
 	word := sms.Word{TileNumber: 447}
-	_ = tm.Set(27, 0, word)
+	_ = tm.Set(23, 0, word)
 
 	t.Run("with valid data", func(t *testing.T) {
-		got, err := tm.Get(27, 0)
+		got, err := tm.Get(23, 0)
 		if err != nil {
 			t.Fatalf("unexpected error: %q", err)
 		}
@@ -43,21 +43,21 @@ func TestTilemap_Get(t *testing.T) {
 	})
 
 	t.Run("with out of bounds row indexing", func(t *testing.T) {
-		_, err := tm.Get(28, 31)
+		_, err := tm.Get(24, 31)
 		if err == nil {
 			t.Fatal("expected an error")
 		}
-		if err.Error() != "get tilemap out of bounds indexing, max is (27,31), requested (28,31)" {
+		if err.Error() != "get tilemap out of bounds indexing, max is (23,31), requested (24,31)" {
 			t.Errorf("unexpected error message, requested '%s'", err)
 		}
 	})
 
 	t.Run("with out of bounds col indexing", func(t *testing.T) {
-		_, err := tm.Get(27, 32)
+		_, err := tm.Get(23, 32)
 		if err == nil {
 			t.Fatal("expected an error")
 		}
-		if err.Error() != "get tilemap out of bounds indexing, max is (27,31), requested (27,32)" {
+		if err.Error() != "get tilemap out of bounds indexing, max is (23,31), requested (23,32)" {
 			t.Errorf("unexpected error message, requested '%s'", err)
 		}
 	})
@@ -79,21 +79,21 @@ func TestTilemap_Set(t *testing.T) {
 	})
 
 	t.Run("with out of bounds row indexing", func(t *testing.T) {
-		err := tm.Set(28, 31, word)
+		err := tm.Set(24, 31, word)
 		if err == nil {
 			t.Fatal("expected an error")
 		}
-		if err.Error() != "set tilemap out of bounds indexing, max is (27,31), requested (28,31)" {
+		if err.Error() != "set tilemap out of bounds indexing, max is (23,31), requested (24,31)" {
 			t.Errorf("unexpected error message, got '%s'", err)
 		}
 	})
 
 	t.Run("with out of bounds col indexing", func(t *testing.T) {
-		err := tm.Set(27, 32, word)
+		err := tm.Set(23, 32, word)
 		if err == nil {
 			t.Fatal("expected an error")
 		}
-		if err.Error() != "set tilemap out of bounds indexing, max is (27,31), requested (27,32)" {
+		if err.Error() != "set tilemap out of bounds indexing, max is (23,31), requested (23,32)" {
 			t.Errorf("unexpected error message, got '%s'", err)
 		}
 	})

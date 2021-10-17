@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	MaxScreenWidth         = 256 // screen width in pixels
-	MaxScreenHeight        = 224 // screen height in pixels
-	MaxVisibleScreenHeight = 192 // visible screen height in pixels on the SMS
-	MaxColourCount         = 64  // maximum colours the SMS supports
-	MaxTileCount           = 448 // maximum number of tiles the VDP can store
+	ScreenWidth          = 256 // screen width in pixels
+	ScreenHeight         = 192 // screen height in pixels
+	ExtendedScreenHeight = 224 // extended 'mode 4' screen height in pixels on the SMS
+	MaxColourCount       = 64  // maximum colours the SMS supports
+	MaxTileCount         = 448 // maximum number of tiles the VDP can store
 )
 
 type SMS struct {
@@ -23,9 +23,10 @@ type SMS struct {
 	// Each tile occupies 32 bytes, allowing up to 448 unique tiles to be stored.
 	characters [MaxTileCount]*Tile
 
-	// The Screen Map can hold the positions of the 896 tiles (768 visible) and
-	// is 1792 bytes in size. Each entry is 2-bytes wide and contains the address
-	// of the tile in the Character generator, along with their attributes.
+	// The Screen Map can hold the positions of the 786 tiles (896 in the
+	// extended mode 4) and is 1792 bytes in size. Each entry is 2-bytes wide
+	// and contains the address of the tile in the Character generator, along
+	// with their attributes.
 	nameTable Tilemap
 
 	// Palette of 32 colours (2x16) used for the background and sprite palettes.
@@ -41,7 +42,7 @@ type SMS struct {
 
 // WidthInPixels returns the maximum screen width in pixels.
 func (s *SMS) WidthInPixels() int {
-	return MaxScreenWidth
+	return ScreenWidth
 }
 
 // WidthInTiles returns the maximum screen width calculated as 8x8 tiles.
@@ -51,12 +52,12 @@ func (s *SMS) WidthInTiles() int {
 
 // HeightInPixels returns the maximum screen height in pixels.
 func (s *SMS) HeightInPixels() int {
-	return MaxScreenHeight
+	return ScreenHeight
 }
 
-// VisibleHeightInPixels returns the maximum visible screen height in pixels.
-func (s *SMS) VisibleHeightInPixels() int {
-	return MaxVisibleScreenHeight
+// ExtendedHeightInPixels returns the extended mode 4 screen height in pixels.
+func (s *SMS) ExtendedHeightInPixels() int {
+	return ExtendedScreenHeight
 }
 
 // HeightInTiles returns the maximum screen height calculated as 8x8 tiles.
@@ -64,9 +65,9 @@ func (s *SMS) HeightInTiles() int {
 	return s.nameTable.Height()
 }
 
-// VisibleHeightInTiles returns the maximum visible screen height calculated as 8x8 tiles.
-func (s *SMS) VisibleHeightInTiles() int {
-	return s.nameTable.VisibleHeight()
+// ExtendedHeightInTiles returns the extended mode 4 screen height calculated as 8x8 tiles.
+func (s *SMS) ExtendedHeightInTiles() int {
+	return s.nameTable.ExtendedHeight()
 }
 
 // TileAt returns a reference to the character generator tile using the given ID.

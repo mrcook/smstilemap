@@ -13,8 +13,8 @@ func ImageToSms(img image.Image) (*sms.SMS, error) {
 	// validate image is suitable for conversion to the SMS
 	if img == nil {
 		return nil, fmt.Errorf("source image is nil")
-	} else if img.Bounds().Dx() > sms.MaxScreenWidth || img.Bounds().Dy() > sms.MaxScreenHeight {
-		return nil, fmt.Errorf("image size too big for SMS screen (%d x %d)", sms.MaxScreenWidth, sms.MaxScreenHeight)
+	} else if img.Bounds().Dx() > sms.ScreenWidth || img.Bounds().Dy() > sms.ScreenHeight {
+		return nil, fmt.Errorf("image size too big for SMS screen (%d x %d)", sms.ScreenWidth, sms.ScreenHeight)
 	}
 	tiled := tiler.FromImage(img, 8)
 
@@ -43,10 +43,10 @@ func SmsToImage(sega *sms.SMS) (image.Image, error) {
 
 	img := image.NewNRGBA(image.Rectangle{
 		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: sega.WidthInPixels(), Y: sega.VisibleHeightInPixels()},
+		Max: image.Point{X: sega.WidthInPixels(), Y: sega.HeightInPixels()},
 	})
 
-	for row := 0; row < sega.VisibleHeightInTiles(); row++ {
+	for row := 0; row < sega.HeightInTiles(); row++ {
 		for col := 0; col < sega.WidthInTiles(); col++ {
 			if err := drawTilemapEntry(sega, img, row, col); err != nil {
 				return nil, err

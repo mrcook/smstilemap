@@ -15,17 +15,17 @@ func TestSMS_ScreenDimensions(t *testing.T) {
 	if sega.WidthInTiles() != 32 {
 		t.Errorf("expected screen tile width to be 32, got %d", sega.WidthInTiles())
 	}
-	if sega.HeightInPixels() != 224 {
-		t.Errorf("expected screen height to be 224px, got %dpx", sega.HeightInPixels())
+	if sega.HeightInPixels() != 192 {
+		t.Errorf("expected screen height to be 192px, got %dpx", sega.HeightInPixels())
 	}
-	if sega.HeightInTiles() != 28 {
-		t.Errorf("expected screen tile height to be 28, got %d", sega.HeightInTiles())
+	if sega.HeightInTiles() != 24 {
+		t.Errorf("expected screen tile height to be 24, got %d", sega.HeightInTiles())
 	}
-	if sega.VisibleHeightInPixels() != 192 {
-		t.Errorf("expected visible screen height to be 192px, got %dpx", sega.VisibleHeightInPixels())
+	if sega.ExtendedHeightInPixels() != 224 {
+		t.Errorf("expected extended screen height to be 224px, got %dpx", sega.ExtendedHeightInPixels())
 	}
-	if sega.VisibleHeightInTiles() != 24 {
-		t.Errorf("expected visible screen tile height to be 24, got %d", sega.VisibleHeightInTiles())
+	if sega.ExtendedHeightInTiles() != 28 {
+		t.Errorf("expected extended screen tile height to be 28, got %d", sega.ExtendedHeightInTiles())
 	}
 }
 
@@ -108,12 +108,12 @@ func TestSMS_AddTilemapEntryAt(t *testing.T) {
 	word := sms.Word{TileNumber: 199}
 
 	t.Run("successfully adds an entry to the tilemap", func(t *testing.T) {
-		err := vdp.AddTilemapEntryAt(27, 31, word)
+		err := vdp.AddTilemapEntryAt(23, 31, word)
 		if err != nil {
 			t.Fatalf("unexpected error: %q", err)
 		}
 
-		got, err := vdp.TilemapEntryAt(27, 31)
+		got, err := vdp.TilemapEntryAt(23, 31)
 		if err != nil {
 			t.Fatalf("unexpected error: %q", err)
 		}
@@ -123,7 +123,7 @@ func TestSMS_AddTilemapEntryAt(t *testing.T) {
 	})
 
 	t.Run("when tilemap is given bad inputs", func(t *testing.T) {
-		err := vdp.AddTilemapEntryAt(28, 32, word)
+		err := vdp.AddTilemapEntryAt(24, 32, word)
 		if err == nil {
 			t.Fatal("expected an error")
 		}

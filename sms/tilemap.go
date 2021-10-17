@@ -4,7 +4,7 @@ import "fmt"
 
 // Tilemap represents the background graphics on the Master System screen,
 // which is 256x224 pixels (32x28 8x8 tiles). This "virtual screen" is slightly
-// larger than the viewport (256x224 px/32x24 tiles), allowing the viewport to
+// larger than the viewport (256x192 px/32x24 tiles), allowing the viewport to
 // scroll smoothly, with updates to the tilemap happening in the off-screen
 // parts. Each entry in the tilemap represents one tile on the virtual screen.
 //
@@ -39,8 +39,9 @@ import "fmt"
 // https://www.smspower.org/maxim/HowToProgram/Tilemap
 
 const (
-	tilemapRows = 28
-	tilemapCols = 32
+	tilemapRows         = 24
+	tilemapExtendedRows = 28
+	tilemapCols         = 32
 )
 
 // Tilemap represents the background graphics on the Master System screen,
@@ -58,9 +59,9 @@ func (t Tilemap) Height() int {
 	return tilemapRows
 }
 
-// VisibleHeight returns the number of rows in the tilemap that are visible to the SMS screen.
-func (t Tilemap) VisibleHeight() int {
-	return tilemapRows - 4
+// ExtendedHeight returns the number of rows in the tilemap when using 'mode 4'.
+func (t Tilemap) ExtendedHeight() int {
+	return tilemapExtendedRows
 }
 
 // Get returns the tile info from the requested location.
