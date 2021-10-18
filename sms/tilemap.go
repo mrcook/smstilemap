@@ -46,7 +46,7 @@ const (
 
 // Tilemap represents the background graphics on the Master System screen,
 type Tilemap struct {
-	table [tilemapRows][tilemapCols]Word
+	table [tilemapExtendedRows][tilemapCols]Word
 }
 
 // Width returns the number of columns in the tilemap.
@@ -81,4 +81,14 @@ func (t *Tilemap) Set(row, col int, word Word) error {
 
 	t.table[row][col] = word
 	return nil
+}
+
+// Words returns the tilemap as a single slice of 16-bit values.
+func (t *Tilemap) Words() (words []uint16) {
+	for _, cols := range t.table {
+		for _, word := range cols {
+			words = append(words, word.ToUint())
+		}
+	}
+	return
 }

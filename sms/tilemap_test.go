@@ -98,3 +98,32 @@ func TestTilemap_Set(t *testing.T) {
 		}
 	})
 }
+
+func TestTilemap_Words(t *testing.T) {
+	tm := sms.Tilemap{}
+	_ = tm.Set(0, 0, sms.Word{Priority: true, TileNumber: 1})
+	_ = tm.Set(0, 31, sms.Word{VerticalFlip: true, TileNumber: 511})
+	_ = tm.Set(23, 31, sms.Word{HorizontalFlip: true, TileNumber: 257})
+
+	words := tm.Words()
+
+	if len(words) != 896 {
+		t.Fatalf("expected tilemap data to contain the full 896 entries, got %d", len(words))
+	}
+
+	if words[0] != 0b0001000000000001 {
+		t.Errorf("expected tilemap to include tile #1, got %016b", words[0])
+	}
+	if words[31] != 0b0000010111111111 {
+		t.Errorf("expected tilemap to include tile #2, got %016b", words[31])
+	}
+	if words[767] != 0b0000001100000001 {
+		t.Errorf("expected tilemap to include tile #3, got %016b", words[767])
+	}
+
+	t.Run("unset entries in the tilemap return zero values", func(t *testing.T) {
+		if words[1] != 0b0000000000000000 {
+			t.Errorf("expected unset entry to be a zero value, got %016b", words[1])
+		}
+	})
+}

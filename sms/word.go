@@ -9,7 +9,10 @@ type Word struct {
 }
 
 func (w Word) ToUint() uint16 {
-	var value uint16
+	value := w.TileNumber
+
+	// tile number should be <= 511, blank out the remaining bits to ensure this.
+	value &= 0b0000000111111111 // TODO: write tests for this
 
 	if w.Priority {
 		value |= 0b0001000000000000
@@ -22,9 +25,6 @@ func (w Word) ToUint() uint16 {
 	}
 	if w.HorizontalFlip {
 		value |= 0b0000001000000000
-	}
-	if w.TileNumber <= 511 {
-		value |= w.TileNumber
 	}
 
 	return value
