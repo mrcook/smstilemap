@@ -136,3 +136,32 @@ func TestTile_AsTilemap(t *testing.T) {
 		}
 	})
 }
+
+func TestTile_Bytes(t *testing.T) {
+	tile := sms.Tile{}
+	_ = tile.SetPaletteIdAt(0, 0, sms.PaletteId(8))
+	_ = tile.SetPaletteIdAt(0, 1, sms.PaletteId(15))
+	_ = tile.SetPaletteIdAt(4, 2, sms.PaletteId(5))
+	_ = tile.SetPaletteIdAt(4, 3, sms.PaletteId(5))
+	_ = tile.SetPaletteIdAt(7, 6, sms.PaletteId(12))
+	_ = tile.SetPaletteIdAt(7, 7, sms.PaletteId(2))
+	data := tile.Bytes()
+
+	t.Run("convert tile palette IDs to correct format", func(t *testing.T) {
+		if data[0] != 0b10001111 {
+			t.Errorf("expected byte #0 to contain correct nibble values, got %08b", data[0])
+		}
+		if data[17] != 0b01010101 {
+			t.Errorf("expected byte #17 to contain correct nibble values, got %08b", data[17])
+		}
+		if data[31] != 0b11000010 {
+			t.Errorf("expected byte #31 to contain correct nibble values, got %08b", data[31])
+		}
+	})
+
+	t.Run("when no pixel was set", func(t *testing.T) {
+		if data[1] != 0b00000000 {
+			t.Errorf("expected a default value of 0, got %08b", data[1])
+		}
+	})
+}

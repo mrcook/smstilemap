@@ -48,11 +48,6 @@ func (t *Tile) SetPaletteIdAt(row, col int, pid PaletteId) error {
 	return nil
 }
 
-// ToPlanarData converts a tile to an SMS planar data slice.
-func (t *Tile) ToPlanarData() [planarDataSize]uint8 {
-	return [planarDataSize]uint8{} // TODO: implement
-}
-
 // AsTilemap returns a copy of the tile with any tilemap vertical/horizontal
 // flipped states applied.
 func (t *Tile) AsTilemap(word *Word) *Tile {
@@ -84,4 +79,16 @@ func (t *Tile) AsTilemap(word *Word) *Tile {
 	}
 
 	return &tile
+}
+
+// Bytes converts the tiles to planar data, returning the result as a slice of bytes.
+func (t *Tile) Bytes() (data []uint8) {
+	for _, rowPixels := range t.pixels {
+		for i := 0; i < len(rowPixels); i += 2 {
+			paletteID := uint8(rowPixels[i]) << 4
+			paletteID |= uint8(rowPixels[i+1]) & 0b00001111
+			data = append(data, paletteID)
+		}
+	}
+	return
 }
