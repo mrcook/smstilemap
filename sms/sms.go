@@ -136,3 +136,26 @@ func (s *SMS) PaletteIdForColour(colour Colour) (PaletteId, error) {
 func (s *SMS) AddPaletteColour(colour Colour) (PaletteId, error) {
 	return s.palette.AddColour(colour)
 }
+
+// TileData returns all tiles as a slice of bytes.
+func (s *SMS) TileData() (data []uint8) {
+	for _, tile := range s.characters {
+		if tile == nil {
+			continue
+		}
+		for _, b := range tile.Bytes() {
+			data = append(data, b)
+		}
+	}
+	return
+}
+
+// TilemapData returns the tilemap data as a slice of 16-bit words.
+func (s *SMS) TilemapData() (data []uint16) {
+	return s.nameTable.Words()
+}
+
+// PaletteData returns the palette data as a slice of bytes.
+func (s *SMS) PaletteData() (data [32]uint8) {
+	return s.palette.Bytes()
+}

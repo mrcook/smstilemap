@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mrcook/smstilemap/assembly"
 	"github.com/mrcook/smstilemap/cmd/smstilemap/processor/internal/tiler"
 	"github.com/mrcook/smstilemap/sms"
 )
@@ -42,6 +43,27 @@ func (p *Processor) PngToSMS() error {
 	}
 	if err := p.imageToSMS(); err != nil {
 		return fmt.Errorf("PNG to SMS data error: %w", err)
+	}
+	return nil
+}
+
+func (p *Processor) ToAssembly() error {
+	var sb strings.Builder
+
+	sb.WriteString(assembly.Tiles(p.sega.TileData()).String())
+	sb.WriteString("\n")
+	sb.WriteString(assembly.Tilemap(p.sega.TilemapData()).String())
+	sb.WriteString("\n")
+	sb.WriteString(assembly.Palettes(p.sega.PaletteData()).String())
+
+	f, err := os.Create(path.Join(p.outputDirectory, p.baseFilename+".asm"))
+	if err != nil {
+		return fmt.Errorf("error creating ASM file: %w", err)
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(sb.String()); err != nil {
+		return fmt.Errorf("error writing SMS assembly to file: %w", err)
 	}
 	return nil
 }

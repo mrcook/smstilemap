@@ -18,7 +18,7 @@ var (
 func init() {
 	inputFilename = flag.String("in", "", "Input PNG filename")
 	outputDirectory = flag.String("dir", "", "Output directory for generated files (default: input filename directory)")
-	testLibrary = flag.Bool("test", true, "Test SMS library by generating a new PNG file")
+	testLibrary = flag.Bool("test", false, "Test SMS library by generating a new PNG file")
 	v := flag.Bool("v", false, "Display version number")
 
 	flag.Parse()
@@ -45,6 +45,11 @@ func main() {
 	}
 
 	if err := pro.PngToSMS(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	if err := pro.ToAssembly(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
