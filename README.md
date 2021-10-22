@@ -19,13 +19,24 @@ effect, so it's recommend to follow the image generation guide below.
 
 ## Usage
 
-* TODO
+With an SMS compatible PNG image, running the command:
+
+    $ smstilemap -in=/path/to/image.png
+
+will generate a Z80 assembly source code file (`.asm`) comprising of the SMS tile,
+tilemap, and palette data, in the same directory as the image: `/path/to/image.asm`.
+
+To specify a different output directory, use the `-out` flag. For example:
+
+    $ smstilemap -in=/path/to/image.png -out=/output/dir
+
+which will write the data as: `/output/dir/image.asm`.
 
 
 ## Guide to generating Sega Master System compatible images
 
 Any graphics or sprite editor that can control the colour palette and export to
-the PNG can be used.
+PNG can be used.
 
 Master System specs:
 
