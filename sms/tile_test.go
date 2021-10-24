@@ -139,28 +139,33 @@ func TestTile_AsTilemap(t *testing.T) {
 
 func TestTile_Bytes(t *testing.T) {
 	tile := sms.Tile{}
-	_ = tile.SetPaletteIdAt(0, 0, sms.PaletteId(8))
-	_ = tile.SetPaletteIdAt(0, 1, sms.PaletteId(15))
-	_ = tile.SetPaletteIdAt(4, 2, sms.PaletteId(5))
-	_ = tile.SetPaletteIdAt(4, 3, sms.PaletteId(5))
-	_ = tile.SetPaletteIdAt(7, 6, sms.PaletteId(12))
-	_ = tile.SetPaletteIdAt(7, 7, sms.PaletteId(2))
+	_ = tile.SetPaletteIdAt(0, 0, sms.PaletteId(0b00000001))
+	_ = tile.SetPaletteIdAt(0, 1, sms.PaletteId(0b00000010))
+	_ = tile.SetPaletteIdAt(0, 2, sms.PaletteId(0b00000100))
+	_ = tile.SetPaletteIdAt(0, 3, sms.PaletteId(0b00001000))
+	_ = tile.SetPaletteIdAt(0, 4, sms.PaletteId(0b00001000))
+	_ = tile.SetPaletteIdAt(0, 5, sms.PaletteId(0b00000100))
+	_ = tile.SetPaletteIdAt(0, 6, sms.PaletteId(0b00000010))
+	_ = tile.SetPaletteIdAt(0, 7, sms.PaletteId(0b00000001))
 	data := tile.Bytes()
 
-	t.Run("convert tile palette IDs to correct format", func(t *testing.T) {
-		if data[0] != 0b10001111 {
-			t.Errorf("expected byte #0 to contain correct nibble values, got %08b", data[0])
+	t.Run("convert tile to planar data", func(t *testing.T) {
+		if data[0] != 0b10000001 {
+			t.Errorf("expected plane 0 to contain correct nibble values, got %08b", data[0])
 		}
-		if data[17] != 0b01010101 {
-			t.Errorf("expected byte #17 to contain correct nibble values, got %08b", data[17])
+		if data[1] != 0b01000010 {
+			t.Errorf("expected plane 1 to contain correct nibble values, got %08b", data[17])
 		}
-		if data[31] != 0b11000010 {
-			t.Errorf("expected byte #31 to contain correct nibble values, got %08b", data[31])
+		if data[2] != 0b00100100 {
+			t.Errorf("expected plane 2 to contain correct nibble values, got %08b", data[31])
+		}
+		if data[3] != 0b00011000 {
+			t.Errorf("expected plane 3 to contain correct nibble values, got %08b", data[31])
 		}
 	})
 
 	t.Run("when no pixel was set", func(t *testing.T) {
-		if data[1] != 0b00000000 {
+		if data[4] != 0b00000000 {
 			t.Errorf("expected a default value of 0, got %08b", data[1])
 		}
 	})

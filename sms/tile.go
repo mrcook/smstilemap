@@ -82,12 +82,28 @@ func (t *Tile) AsTilemap(word *Word) *Tile {
 }
 
 // Bytes converts the tiles to planar data, returning the result as a slice of bytes.
+// Each row of 8 pixels requires 4 bit planes, totalling 4-bytes per row, with 32 in total.
 func (t *Tile) Bytes() (data []uint8) {
 	for _, rowPixels := range t.pixels {
-		for i := 0; i < len(rowPixels); i += 2 {
-			paletteID := uint8(rowPixels[i]) << 4
-			paletteID |= uint8(rowPixels[i+1]) & 0b00001111
-			data = append(data, paletteID)
+		// 4 bit planes for each row of 8 pixels
+		var planes [4]uint8
+
+		for i, pid := range rowPixels {
+			// Assign the bit of each palette ID nibble to the correct bit plane
+			// Note: 4 planes = 4-bits of a palette ID number (0-15), assigned as:
+			//   bit-0 > plane 0, bit-1 > plane 1, bit-2 > plane 2, bit-3 > plane 3
+			// Each tile pixel aligns with the same bit number on each plane.
+			for plane := 0; plane < 4; plane++ {
+				pixel := uint8(pid >> plane) // shift each bit of the nibble to bit-0 position
+				pixel &= 0b00000001          // make sure this is the only set bit
+				pixel <<= 7 - i              // shift the bit to the correct pixel location
+				planes[plane] |= pixel       // set the bit (pixel location) on the plane
+			}
+		}
+
+		// add the 4 planes to the slice
+		for _, plane := range planes {
+			data = append(data, plane)
 		}
 	}
 	return
