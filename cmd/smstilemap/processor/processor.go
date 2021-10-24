@@ -50,11 +50,11 @@ func (p *Processor) PngToSMS() error {
 func (p *Processor) ToAssembly() error {
 	var sb strings.Builder
 
-	sb.WriteString(assembly.Tiles(p.sega.TileData()).String())
-	sb.WriteString("\n")
 	sb.WriteString(assembly.Tilemap(p.sega.TilemapData()).String())
 	sb.WriteString("\n")
 	sb.WriteString(assembly.Palettes(p.sega.PaletteData()).String())
+	sb.WriteString("\n")
+	sb.WriteString(assembly.Tiles(p.sega.TileData()).String())
 
 	f, err := os.Create(path.Join(p.outputDirectory, p.baseFilename+".asm"))
 	if err != nil {
