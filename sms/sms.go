@@ -106,7 +106,7 @@ func (s *SMS) AddTile(t *Tile) (uint16, error) {
 			return uint16(i), nil
 		}
 	}
-	return 0, fmt.Errorf("no space available")
+	return 0, fmt.Errorf("tile memory full")
 }
 
 // TilemapEntryAt returns the tile info from the tilemap for the requested location.
