@@ -12,12 +12,14 @@ import (
 var (
 	inputFilename   *string
 	outputDirectory *string
+	outputFormat    *string
 	testLibrary     *bool
 )
 
 func init() {
 	inputFilename = flag.String("in", "", "Input PNG filename")
 	outputDirectory = flag.String("out", "", "Output directory for generated files (default: input filename directory)")
+	outputFormat = flag.String("fmt", "asm", "Output format: asm, tiles")
 	testLibrary = flag.Bool("test", false, "Test SMS library by generating a new PNG file")
 	v := flag.Bool("v", false, "Display version number")
 
@@ -49,15 +51,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := pro.ToAssembly(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	if *testLibrary {
-		if err := pro.ExportSmsToPngImage(); err != nil {
+		if err := pro.SaveTilemapToImage(); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+	}
+
+	var err error
+
+	switch *outputFormat {
+	case "asm":
+		err = pro.ToAssembly()
+	case "tiles":
+		err = pro.SaveTilesToImage()
+	default:
+		fmt.Println("ERROR: 'fmt' unknown output format!")
+		fmt.Println()
+		flag.Usage()
+		os.Exit(2)
+	}
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

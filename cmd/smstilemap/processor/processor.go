@@ -68,19 +68,22 @@ func (p *Processor) ToAssembly() error {
 	return nil
 }
 
-func (p *Processor) ExportSmsToPngImage() error {
-	// convert SMS tilemap data back to a normal image
+// SaveTilesToImage converts the SMS tiles to an image
+func (p *Processor) SaveTilesToImage() error {
+	dstImage, err := p.smsTilesToImage()
+	if err != nil {
+		return err
+	}
+	return p.saveImageToFilename(dstImage, p.pngTilesFilename())
+}
+
+// SaveTilemapToImage converts the SMS tilemap data back to a normal image
+func (p *Processor) SaveTilemapToImage() error {
 	dstImage, err := p.smsToImage()
 	if err != nil {
 		return err
 	}
-
-	// save to new PNG file
-	if err := p.saveImageToFilename(dstImage, p.pngFilename()); err != nil {
-		return err
-	}
-
-	return nil
+	return p.saveImageToFilename(dstImage, p.pngFilename())
 }
 
 func (p *Processor) readPNG(filename string) error {
@@ -226,6 +229,67 @@ func (p *Processor) smsOrientation(or tiler.Orientation) sms.Orientation {
 	}
 }
 
+// smsTilesToImage converts the SMS tile data to a new NRGBA image.
+func (p *Processor) smsTilesToImage() (image.Image, error) {
+	tileSize := 8
+	height, width := p.tileSheetSizeInPixels(tileSize)
+
+	img := image.NewNRGBA(image.Rectangle{
+		Min: image.Point{X: 0, Y: 0},
+		Max: image.Point{X: width, Y: height},
+	})
+
+	errorMessage := "drawing tile to image"
+	rowOffset := 0
+	colOffset := 0
+
+	for i := uint16(0); i < sms.MaxTileCount; i++ {
+		tile, err := p.sega.TileAt(i)
+		if err != nil {
+			return nil, err
+		} else if tile == nil {
+			break
+		}
+
+		// draw the tile to the image
+		for y := 0; y < tileSize; y++ {
+			for x := 0; x < tileSize; x++ {
+				paletteId, err := tile.PaletteIdAt(y, x)
+				if err != nil {
+					return nil, fmt.Errorf("%s: %w", errorMessage, err)
+				}
+				colour, err := p.sega.PaletteColour(paletteId)
+				if err != nil {
+					return nil, fmt.Errorf("%s: %w", errorMessage, err)
+				}
+				img.Set(colOffset+x, rowOffset+y, colour)
+			}
+		}
+
+		// next column
+		colOffset += tileSize
+
+		// next row?
+		if colOffset >= width {
+			colOffset = 0
+			rowOffset += tileSize
+		}
+	}
+
+	return img, nil
+}
+
+func (p *Processor) tileSheetSizeInPixels(tileSize int) (int, int) {
+	height := sms.MaxTileCount / p.sega.WidthInTiles()
+	if sms.MaxTileCount%p.sega.WidthInTiles() > 0 {
+		height += 1 // make up missing row
+	}
+	height *= tileSize // set height in pixels
+	width := p.sega.WidthInPixels()
+
+	return height, width
+}
+
 // smsToImage converts the SMS data to a new NRGBA image, with the tile layout
 // as defined in the tilemap name table.
 func (p *Processor) smsToImage() (image.Image, error) {
@@ -305,6 +369,10 @@ func (p *Processor) saveImageToFilename(i image.Image, filename string) error {
 
 func (p *Processor) pngFilename() string {
 	return path.Join(p.outputDirectory, p.baseFilename+"-generated.png")
+}
+
+func (p *Processor) pngTilesFilename() string {
+	return path.Join(p.outputDirectory, p.baseFilename+"-tiles.png")
 }
 
 func outputDirectory(dir, inFilename string) string {
