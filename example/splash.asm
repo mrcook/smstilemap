@@ -58,64 +58,58 @@ main:
     ;==============================================================
     ; Set up VDP registers
     ;==============================================================
-    ld hl,VDPInitData
-    ld b,VDPInitDataEnd-VDPInitData
-    ld c,VDPControl
+    ld hl, VDPInitData
+    ld b, VDPInitDataEnd-VDPInitData
+    ld c, VDPControl
     otir
 
     ;==============================================================
     ; Clear VRAM
     ;==============================================================
     ; 1. Set VRAM write address to $0000
-    ld hl,$0000 | VRAMWrite
+    ld hl, $0000 | VRAMWrite
     call SetVDPAddress
     ; 2. Output 16KB of zeroes
-    ld bc,$4000     ; Counter for 16KB of VRAM
+    ld bc, $4000     ; Counter for 16KB of VRAM
 -:  xor a
-    out (VDPData),a ; Output to VRAM address, which is auto-incremented after each write
+    out (VDPData), a ; Output to VRAM address, which is auto-incremented after each write
     dec bc
-    ld a,b
+    ld a, b
     or c
-    jr nz,-
+    jr nz, -
 
     ;==============================================================
     ; Load palette
     ;==============================================================
     ; 1. Set VRAM write address to CRAM (palette) address 0
-    ld hl,$0000 | CRAMWrite
+    ld hl, $0000 | CRAMWrite
     call SetVDPAddress
     ; 2. Output colour data
-    ld hl,PaletteData
-    ld bc,PaletteDataEnd-PaletteData
+    ld hl, PaletteData
+    ld bc, PaletteDataEnd-PaletteData
     call CopyToVDP
 
     ;==============================================================
-    ; Load tiles (font)
+    ; Load tiles
     ;==============================================================
     ; 1. Set VRAM write address to tile index 0
-    ld hl,$0000 | VRAMWrite
+    ld hl, $0000 | VRAMWrite
     call SetVDPAddress
     ; 2. Output tile data
-    ld hl,TileData              ; Location of tile data
-    ld bc,TileDataEnd-TileData  ; Counter for number of bytes to write
+    ld hl, TileData              ; Location of tile data
+    ld bc, TileDataEnd-TileData  ; Counter for number of bytes to write
     call CopyToVDP
 
     ;==============================================================
-    ; Write text to name table
+    ; Write splash screen tiles to name table
     ;==============================================================
     ; 1. Set VRAM write address to tilemap index 0
-    ld hl,$3800 | VRAMWrite
+    ld hl, $3800 | VRAMWrite
     call SetVDPAddress
     ; 2. Output tilemap data
-    ld hl,Tilemap
-    ld bc,TilemapEnd-Tilemap ; Counter for number of bytes to write
--:  ld a,(hl)                ; Get data byte
-    out (VDPData),a
-    inc hl                   ; Point to next letter
-    dec bc
-    ld a,b
-    or c
-    jr nz,-
+    ld hl, Tilemap
+    ld bc, TilemapEnd-Tilemap ; Counter for number of bytes to write
+    call CopyToVDP
 
     ; Turn screen on
     ld a,%01000000
