@@ -10,7 +10,7 @@ func TestPalette_ColourAt(t *testing.T) {
 	pal := sms.Palette{}
 
 	t.Run("with valid position", func(t *testing.T) {
-		colour := sms.FromRGB(170, 170, 170)
+		colour := sms.ColourDataForRGB(170, 170, 170)
 		_ = pal.SetColourAt(31, colour)
 
 		want := colour.SMS()
@@ -45,7 +45,7 @@ func TestPalette_ColourAt(t *testing.T) {
 func TestPalette_SetColourAt(t *testing.T) {
 	t.Run("with valid position", func(t *testing.T) {
 		pal := sms.Palette{}
-		colour := sms.FromRGB(85, 85, 85)
+		colour := sms.ColourDataForRGB(85, 85, 85)
 		if err := pal.SetColourAt(5, colour); err != nil {
 			t.Fatalf("unexpected error, got '%s", err)
 		}

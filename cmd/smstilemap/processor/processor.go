@@ -152,8 +152,8 @@ func (p *Processor) convertAndAddTileToSms(tile *tiler.Tile) error {
 func (p *Processor) addTileColoursToSmsPalette(tile *tiler.Tile) error {
 	for _, c := range tile.Palette() {
 		r, g, b, _ := c.RGBA()
-		colour := sms.FromNearestMatchRGB(uint8(r), uint8(g), uint8(b))
-		if _, err := p.sega.AddPaletteColour(colour); err != nil {
+		data := sms.ColourDataForNearestRGB(uint8(r), uint8(g), uint8(b))
+		if _, err := p.sega.AddPaletteColour(data.Index); err != nil {
 			return err
 		}
 	}
@@ -172,10 +172,10 @@ func (p *Processor) convertToSmsTile(tile *tiler.Tile) (*sms.Tile, error) {
 				return nil, err
 			}
 			r, g, b, _ := c.RGBA()
-			colour := sms.FromNearestMatchRGB(uint8(r), uint8(g), uint8(b))
+			data := sms.ColourDataForNearestRGB(uint8(r), uint8(g), uint8(b))
 
 			// find the palette ID for the colour
-			pid, err := p.sega.PaletteIdForColour(colour)
+			pid, err := p.sega.PaletteIdForColour(data.Index)
 			if err != nil {
 				return nil, err
 			}

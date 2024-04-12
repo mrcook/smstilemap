@@ -86,3 +86,6 @@ Copyright (c) 2021 Michael R. Cook. All rights reserved.
 
 This work is licensed under the terms of the MIT license.
 For a copy, see <https://opensource.org/licenses/MIT>.
+
+Various snippets of information from the [SMS Power](https://www.smspower.org)
+website have been reproduced in the source code comments.
