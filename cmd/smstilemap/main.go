@@ -6,8 +6,9 @@ import (
 	"os"
 
 	"github.com/mrcook/smstilemap/cmd/smstilemap/processor"
-	"github.com/mrcook/smstilemap/sms"
 )
+
+const version = "0.1.1"
 
 var (
 	inputFilename   *string
@@ -26,7 +27,7 @@ func init() {
 	flag.Parse()
 
 	if *v {
-		fmt.Printf("%s v%s\n", os.Args[0], sms.Version)
+		fmt.Printf("%s v%s\n", os.Args[0], version)
 		os.Exit(0)
 	}
 

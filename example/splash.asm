@@ -3,7 +3,7 @@
 ; Display a splash screen on the SMS using background tiles.
 ; Based on the tutorial: https://www.smspower.org/maxim/HowToProgram/
 ;
-; Modified 2021-10-24 by Michael R. Cook
+; Modified 2024-04-10 by Michael R. Cook
 ;
 ;==============================================================
 ; WLA-DX banking setup
